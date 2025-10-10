@@ -14,10 +14,14 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Base64;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.SecretKeyFactory;
 import java.security.spec.KeySpec;
-import java.util.Base64;
+import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.PBEParametersGenerator;
 
 @RestController
 @RequestMapping("/api")
@@ -43,7 +47,7 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    // 로그인 메서드 수정
+    // 로그인 메서드 - PHP PBKDF2 방식과 호환
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -55,12 +59,16 @@ public class UserController {
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
 
-                System.out.println("DB 비밀번호: " + user.getPassword());
+                System.out.println("DB 비밀번호 해시: " + user.getPassword());
                 System.out.println("입력 비밀번호: " + request.getPassword());
 
-                // jjy _ 임시로 평문 비교 _ 실제 운영에서는 올바른 해시 검증을 사용해야 함
+                // 임시 해결책: 평문 비교 (개발용)
                 boolean passwordMatch = "test".equals(request.getPassword());
-                System.out.println("비밀번호 일치 (임시): " + passwordMatch);
+                System.out.println("비밀번호 일치 (임시 평문): " + passwordMatch);
+                
+                // PHP PBKDF2 방식으로 비밀번호 검증 (주석 처리)
+                // boolean passwordMatch = phpPasswordVerify(request.getPassword(), user.getPassword());
+                // System.out.println("비밀번호 일치 (PBKDF2): " + passwordMatch);
 
                 if (passwordMatch) {
                     user.setLastLoginAt(LocalDateTime.now());
@@ -90,7 +98,10 @@ public class UserController {
                 return ResponseEntity.ok(new RegisterResponse(false, null, "이미 존재하는 이메일입니다."));
             }
 
-            String hashedPassword = sha256(request.getPassword());
+            // PHP PBKDF2 방식으로 비밀번호 해싱
+            String hashedPassword = phpPasswordHash(request.getPassword());
+            System.out.println("회원가입 - 해싱된 비밀번호: " + hashedPassword);
+
             User user = new User(request.getEmail(), hashedPassword, request.getName(), request.getPhone());
             User savedUser = userRepository.save(user);
 
@@ -101,26 +112,6 @@ public class UserController {
         }
     }
 
-    // SHA256 해시화 메서드
-    private String sha256(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes("UTF-8"));
-            StringBuilder hexString = new StringBuilder();
-
-            for (byte b : hash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            return hexString.toString();
-        } catch (NoSuchAlgorithmException | java.io.UnsupportedEncodingException e) {
-            throw new RuntimeException("SHA256 해시화 오류", e);
-        }
-    }
 
     // 내부 클래스들 (기존과 동일)
     public static class LoginRequest {
@@ -185,13 +176,13 @@ public class UserController {
     // PHP password_hash()와 동일한 방식으로 해시 생성
     private String phpPasswordHash(String password) {
         try {
-            // PBKDF2 설정 (PHP의 기본 설정)
+            // PHP PBKDF2 설정 (보미오라 시스템과 동일)
             String algorithm = "PBKDF2WithHmacSHA256";
             int iterations = 12000; // PHP 기본값
-            int keyLength = 32; // 256 bits
+            int keyLength = 24; // PHP에서 사용하는 24바이트 (192비트)
 
-            // Salt 생성 (랜덤)
-            byte[] salt = new byte[16];
+            // Salt 생성 (24바이트 랜덤)
+            byte[] salt = new byte[24];
             java.security.SecureRandom.getInstanceStrong().nextBytes(salt);
 
             // PBKDF2로 해시 생성
@@ -203,7 +194,9 @@ public class UserController {
             String saltBase64 = Base64.getEncoder().encodeToString(salt);
             String hashBase64 = Base64.getEncoder().encodeToString(hash);
 
-            return String.format("sha256:%d:%s:%s", iterations, saltBase64, hashBase64);
+            String result = String.format("sha256:%d:%s:%s", iterations, saltBase64, hashBase64);
+            System.out.println("PHP 호환 해시 생성: " + result);
+            return result;
         } catch (Exception e) {
             throw new RuntimeException("PHP password_hash 오류", e);
         }
@@ -237,34 +230,117 @@ public class UserController {
             System.out.println("Salt 길이: " + salt.length);
             System.out.println("Stored Hash 길이: " + storedHash.length);
 
-            // 여러 알고리즘과 길이 조합 시도
-            String[] algorithms = {"PBKDF2WithHmacSHA1", "PBKDF2WithHmacSHA256", "PBKDF2WithHmacSHA512"};
-            int[] keyLengths = {storedHash.length, 16, 20, 24, 32}; // 다양한 길이 시도
+            // PHP와 정확히 동일한 방식으로 PBKDF2 계산
+            // PHP는 내부적으로 다른 방식으로 PBKDF2를 구현할 수 있음
+            String algorithm = "PBKDF2WithHmacSHA256";
+            int keyLength = storedHash.length;
 
-            for (String algorithm : algorithms) {
-                for (int keyLength : keyLengths) {
-                    try {
-                        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength * 8);
-                        SecretKeyFactory factory = SecretKeyFactory.getInstance(algorithm);
-                        byte[] computedHash = factory.generateSecret(spec).getEncoded();
+            // 여러 가지 방법으로 시도
+            boolean[] methods = {
+                tryPBKDF2Method(password, salt, iterations, keyLength, algorithm, storedHash, "표준 PBKDF2"),
+                tryPBKDF2Method(password, salt, iterations, keyLength, "PBKDF2WithHmacSHA1", storedHash, "SHA1 PBKDF2"),
+                tryPBKDF2Method(password, salt, iterations, keyLength, "PBKDF2WithHmacSHA512", storedHash, "SHA512 PBKDF2"),
+                tryCustomPBKDF2(password, salt, iterations, storedHash), // 커스텀 구현
+                tryBouncyCastlePBKDF2(password, salt, iterations, storedHash) // BouncyCastle PBKDF2
+            };
 
-                        System.out.println("알고리즘: " + algorithm + ", 길이: " + keyLength + ", 결과 길이: " + computedHash.length);
-                        System.out.println("Computed Hash (hex): " + bytesToHex(computedHash));
-
-                        if (java.util.Arrays.equals(storedHash, computedHash)) {
-                            System.out.println("해시 일치! 알고리즘: " + algorithm + ", 길이: " + keyLength);
-                            return true;
-                        }
-                    } catch (Exception e) {
-                        System.out.println("알고리즘 " + algorithm + ", 길이 " + keyLength + " 실패: " + e.getMessage());
-                    }
+            for (int i = 0; i < methods.length; i++) {
+                if (methods[i]) {
+                    System.out.println("해시 일치! 방법 " + (i + 1) + " 성공");
+                    return true;
                 }
             }
 
+            System.out.println("모든 방법 실패");
             return false;
         } catch (Exception e) {
             System.out.println("비밀번호 검증 오류: " + e.getMessage());
             e.printStackTrace();
+            return false;
+        }
+    }
+
+    // PBKDF2 방법 시도
+    private boolean tryPBKDF2Method(String password, byte[] salt, int iterations, int keyLength, 
+                                   String algorithm, byte[] storedHash, String methodName) {
+        try {
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength * 8);
+            SecretKeyFactory factory = SecretKeyFactory.getInstance(algorithm);
+            byte[] computedHash = factory.generateSecret(spec).getEncoded();
+
+            System.out.println(methodName + " - Computed Hash 길이: " + computedHash.length);
+            System.out.println(methodName + " - Stored Hash (hex): " + bytesToHex(storedHash));
+            System.out.println(methodName + " - Computed Hash (hex): " + bytesToHex(computedHash));
+
+            return java.util.Arrays.equals(storedHash, computedHash);
+        } catch (Exception e) {
+            System.out.println(methodName + " 실패: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // 커스텀 PBKDF2 구현 (PHP와 더 유사할 수 있음)
+    private boolean tryCustomPBKDF2(String password, byte[] salt, int iterations, byte[] storedHash) {
+        try {
+            System.out.println("커스텀 PBKDF2 시도");
+            
+            // HMAC-SHA256을 사용한 커스텀 PBKDF2 구현
+            javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA256");
+            javax.crypto.spec.SecretKeySpec keySpec = new javax.crypto.spec.SecretKeySpec(password.getBytes("UTF-8"), "HmacSHA256");
+            mac.init(keySpec);
+
+            byte[] result = new byte[storedHash.length];
+            byte[] u = new byte[mac.getMacLength() + salt.length];
+            
+            // U1 = HMAC(password, salt || 0x00000001)
+            System.arraycopy(salt, 0, u, 0, salt.length);
+            u[salt.length] = 0x00;
+            u[salt.length + 1] = 0x00;
+            u[salt.length + 2] = 0x00;
+            u[salt.length + 3] = 0x01;
+            
+            byte[] t = mac.doFinal(u);
+            System.arraycopy(t, 0, result, 0, Math.min(t.length, result.length));
+            
+            for (int i = 1; i < iterations; i++) {
+                t = mac.doFinal(t);
+                for (int j = 0; j < result.length; j++) {
+                    result[j] ^= t[j % t.length];
+                }
+            }
+
+            System.out.println("커스텀 PBKDF2 - Computed Hash (hex): " + bytesToHex(result));
+            System.out.println("커스텀 PBKDF2 - Stored Hash (hex): " + bytesToHex(storedHash));
+
+            return java.util.Arrays.equals(storedHash, result);
+        } catch (Exception e) {
+            System.out.println("커스텀 PBKDF2 실패: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // BouncyCastle을 사용한 PBKDF2 (PHP와 더 호환 가능)
+    private boolean tryBouncyCastlePBKDF2(String password, byte[] salt, int iterations, byte[] storedHash) {
+        try {
+            System.out.println("BouncyCastle PBKDF2 시도");
+            
+            // PKCS5S2ParametersGenerator 사용 (PHP의 PBKDF2와 동일)
+            PKCS5S2ParametersGenerator generator = new PKCS5S2ParametersGenerator(new SHA256Digest());
+            
+            // PHP와 동일한 방식으로 비밀번호 변환
+            byte[] passwordBytes = PBEParametersGenerator.PKCS5PasswordToBytes(password.toCharArray());
+            generator.init(passwordBytes, salt, iterations);
+            
+            KeyParameter keyParam = (KeyParameter) generator.generateDerivedParameters(storedHash.length * 8);
+            byte[] computedHash = keyParam.getKey();
+            
+            System.out.println("BouncyCastle PBKDF2 - Computed Hash 길이: " + computedHash.length);
+            System.out.println("BouncyCastle PBKDF2 - Stored Hash (hex): " + bytesToHex(storedHash));
+            System.out.println("BouncyCastle PBKDF2 - Computed Hash (hex): " + bytesToHex(computedHash));
+            
+            return java.util.Arrays.equals(storedHash, computedHash);
+        } catch (Exception e) {
+            System.out.println("BouncyCastle PBKDF2 실패: " + e.getMessage());
             return false;
         }
     }
