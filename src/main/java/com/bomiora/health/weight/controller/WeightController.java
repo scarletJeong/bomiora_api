@@ -16,7 +16,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/health/weight")
-@CrossOrigin(origins = {"http://localhost:5000", "http://localhost:5001"})
+@CrossOrigin(origins = {
+    "http://localhost:5000", 
+    "http://localhost:5001",
+    "https://bomiora0.mycafe24.com",
+    "http://bomiora0.mycafe24.com"
+})
 public class WeightController {
 
     @Autowired
@@ -29,7 +34,7 @@ public class WeightController {
     @PostMapping
     public ResponseEntity<?> createWeight(@RequestBody Map<String, Object> request) {
         try {
-            Long mbNo = Long.valueOf(request.get("mb_no").toString());
+            String mbId = request.get("mb_id").toString();
             Double weight = Double.valueOf(request.get("weight").toString());
             
             String measuredAtStr = request.get("measured_at").toString();
@@ -47,7 +52,7 @@ public class WeightController {
                 : null;
 
             Weight record = new Weight();
-            record.setMbNo(mbNo);
+            record.setMbId(mbId);
             record.setMeasuredAt(measuredAt);
             record.setWeight(weight);
             record.setHeight(height);
@@ -161,16 +166,16 @@ public class WeightController {
 
     /**
      * 회원의 모든 체중 기록 조회
-     * GET /api/health/weight?mb_no={mbNo}
+     * GET /api/health/weight?mb_id={mbId}
      */
     @GetMapping
-    public ResponseEntity<?> getWeights(@RequestParam Long mb_no) {
+    public ResponseEntity<?> getWeights(@RequestParam String mb_id) {
         try {
-            List<Weight> records = weightRepository.findByMbNoOrderByMeasuredAtDesc(mb_no);
+            List<Weight> records = weightRepository.findByMbIdOrderByMeasuredAtDesc(mb_id);
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("records", records);
+            response.put("data", records);
             response.put("count", records.size());
 
             return ResponseEntity.ok(response);
@@ -185,21 +190,21 @@ public class WeightController {
 
     /**
      * 최신 체중 기록 조회
-     * GET /api/health/weight/latest?mb_no={mbNo}
+     * GET /api/health/weight/latest?mb_id={mbId}
      */
     @GetMapping("/latest")
-    public ResponseEntity<?> getLatestWeight(@RequestParam Long mb_no) {
+    public ResponseEntity<?> getLatestWeight(@RequestParam String mb_id) {
         try {
-            Optional<Weight> record = weightRepository.findFirstByMbNoOrderByMeasuredAtDesc(mb_no);
+            Optional<Weight> record = weightRepository.findFirstByMbIdOrderByMeasuredAtDesc(mb_id);
 
             Map<String, Object> response = new HashMap<>();
             
             if (record.isPresent()) {
                 response.put("success", true);
-                response.put("record", record.get());
+                response.put("data", record.get());
             } else {
                 response.put("success", false);
-                response.put("record", null);
+                response.put("data", null);
                 response.put("message", "체중 기록이 없습니다");
             }
 
@@ -215,24 +220,24 @@ public class WeightController {
 
     /**
      * 특정 날짜의 체중 기록 조회
-     * GET /api/health/weight/{date}?mb_no={mbNo}
+     * GET /api/health/weight/{date}?mb_id={mbId}
      */
     @GetMapping("/{date}")
     public ResponseEntity<?> getWeightsByDate(
             @PathVariable String date,
-            @RequestParam Long mb_no) {
+            @RequestParam String mb_id) {
         try {
             LocalDate targetDate = LocalDate.parse(date);
             LocalDateTime startOfDay = targetDate.atStartOfDay();
             LocalDateTime endOfDay = targetDate.atTime(LocalTime.MAX);
 
-            List<Weight> records = weightRepository.findByMbNoAndDateRange(
-                mb_no, startOfDay, endOfDay
+            List<Weight> records = weightRepository.findByMbIdAndDateRange(
+                mb_id, startOfDay, endOfDay
             );
 
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("records", records);
+            response.put("data", records);
             response.put("count", records.size());
 
             return ResponseEntity.ok(response);

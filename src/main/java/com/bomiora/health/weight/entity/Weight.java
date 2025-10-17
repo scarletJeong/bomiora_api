@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bomiora_weight_records")
+@Table(name = "bm_weight_records")
 public class Weight {
 
     @Id
@@ -12,8 +12,8 @@ public class Weight {
     @Column(name = "record_id")
     private Long recordId;
 
-    @Column(name = "mb_no", nullable = false)
-    private Long mbNo;
+    @Column(name = "mb_id", nullable = false)
+    private String mbId;
 
     @Column(name = "measured_at", nullable = false)
     private LocalDateTime measuredAt;
@@ -56,12 +56,12 @@ public class Weight {
         this.recordId = recordId;
     }
 
-    public Long getMbNo() {
-        return mbNo;
+    public String getMbId() {
+        return mbId;
     }
 
-    public void setMbNo(Long mbNo) {
-        this.mbNo = mbNo;
+    public void setMbId(String mbId) {
+        this.mbId = mbId;
     }
 
     public LocalDateTime getMeasuredAt() {

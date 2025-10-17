@@ -1,5 +1,6 @@
 package com.bomiora.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -9,6 +10,10 @@ public class User {
     @Id
     @Column(name = "mb_no") // Primary Key 추가
     private Long id;
+
+    @JsonProperty("mb_id") // JSON 변환 시 mb_id로 출력
+    @Column(name = "mb_id", unique = true) // 회원 아이디 (문자열)
+    private String mbId;
 
     @Column(name = "mb_email", unique = true, nullable = false)
     private String email;
@@ -43,6 +48,9 @@ public class User {
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
+
+    public String getMbId() { return mbId; }
+    public void setMbId(String mbId) { this.mbId = mbId; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
