@@ -26,7 +26,12 @@ import org.bouncycastle.crypto.PBEParametersGenerator;
 @RestController
 @RequestMapping("/api")
 @Tag(name = "User API", description = "사용자 관련 API")
-@CrossOrigin(origins = {"http://localhost:5000", "http://localhost:5001"}) // CORS 설정 추가
+@CrossOrigin(origins = {
+    "http://localhost:5000", 
+    "http://localhost:5001",
+    "https://bomiora0.mycafe24.com",
+    "http://bomiora0.mycafe24.com"
+})
 public class UserController {
 
     @Autowired
