@@ -16,7 +16,12 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:5000", "http://localhost:5001") // Flutter 앱 포트들
+                .allowedOrigins(
+                    "http://localhost:5000", 
+                    "http://localhost:5001",
+                    "https://bomiora0.mycafe24.com",
+                    "http://bomiora0.mycafe24.com"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
@@ -25,7 +30,12 @@ public class CorsConfig implements WebMvcConfigurer {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5000", "http://localhost:5001"));
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:5000", 
+            "http://localhost:5001",
+            "https://bomiora0.mycafe24.com",
+            "http://bomiora0.mycafe24.com"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

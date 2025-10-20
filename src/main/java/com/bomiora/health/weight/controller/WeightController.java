@@ -16,12 +16,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/health/weight")
-@CrossOrigin(origins = {
-    "http://localhost:5000", 
-    "http://localhost:5001",
-    "https://bomiora0.mycafe24.com",
-    "http://bomiora0.mycafe24.com"
-})
 public class WeightController {
 
     @Autowired
