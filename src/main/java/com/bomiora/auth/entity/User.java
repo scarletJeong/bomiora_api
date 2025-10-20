@@ -1,4 +1,4 @@
-package com.bomiora.entity;
+package com.bomiora.auth.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;

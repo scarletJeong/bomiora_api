@@ -1,7 +1,7 @@
-package com.bomiora.controller;
+package com.bomiora.auth.controller;
 
-import com.bomiora.entity.User;
-import com.bomiora.repository.UserRepository;
+import com.bomiora.auth.entity.User;
+import com.bomiora.auth.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -9,8 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +25,6 @@ import org.bouncycastle.crypto.PBEParametersGenerator;
 @RestController
 @RequestMapping("/api")
 @Tag(name = "User API", description = "사용자 관련 API")
-@CrossOrigin(origins = {
-    "http://localhost:5000", 
-    "http://localhost:5001",
-    "https://bomiora0.mycafe24.com",
-    "http://bomiora0.mycafe24.com"
-})
 public class UserController {
 
     @Autowired

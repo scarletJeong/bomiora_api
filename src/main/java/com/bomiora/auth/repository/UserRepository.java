@@ -1,6 +1,6 @@
-package com.bomiora.repository;
+package com.bomiora.auth.repository;
 
-import com.bomiora.entity.User;
+import com.bomiora.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
