@@ -30,6 +30,12 @@ public class Weight {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
+    @Column(name = "front_image_path", length = 500)
+    private String frontImagePath;
+
+    @Column(name = "side_image_path", length = 500)
+    private String sideImagePath;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -102,6 +108,22 @@ public class Weight {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public String getFrontImagePath() {
+        return frontImagePath;
+    }
+
+    public void setFrontImagePath(String frontImagePath) {
+        this.frontImagePath = frontImagePath;
+    }
+
+    public String getSideImagePath() {
+        return sideImagePath;
+    }
+
+    public void setSideImagePath(String sideImagePath) {
+        this.sideImagePath = sideImagePath;
     }
 
     public LocalDateTime getCreatedAt() {

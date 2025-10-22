@@ -45,6 +45,14 @@ public class WeightController {
                 ? request.get("notes").toString() 
                 : null;
 
+            String frontImagePath = request.get("front_image_path") != null 
+                ? request.get("front_image_path").toString() 
+                : null;
+
+            String sideImagePath = request.get("side_image_path") != null 
+                ? request.get("side_image_path").toString() 
+                : null;
+
             Weight record = new Weight();
             record.setMbId(mbId);
             record.setMeasuredAt(measuredAt);
@@ -52,6 +60,8 @@ public class WeightController {
             record.setHeight(height);
             record.setBmi(bmi);
             record.setNotes(notes);
+            record.setFrontImagePath(frontImagePath);
+            record.setSideImagePath(sideImagePath);
 
             Weight savedRecord = weightRepository.save(record);
 
@@ -106,6 +116,16 @@ public class WeightController {
             if (request.containsKey("notes")) {
                 Object notesValue = request.get("notes");
                 record.setNotes(notesValue != null ? notesValue.toString() : null);
+            }
+
+            if (request.containsKey("front_image_path")) {
+                Object frontImagePathValue = request.get("front_image_path");
+                record.setFrontImagePath(frontImagePathValue != null ? frontImagePathValue.toString() : null);
+            }
+
+            if (request.containsKey("side_image_path")) {
+                Object sideImagePathValue = request.get("side_image_path");
+                record.setSideImagePath(sideImagePathValue != null ? sideImagePathValue.toString() : null);
             }
 
             // BMI 재계산
