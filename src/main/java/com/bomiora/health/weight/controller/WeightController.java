@@ -5,7 +5,13 @@ import com.bomiora.health.weight.repository.WeightRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -13,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/health/weight")
@@ -20,6 +27,78 @@ public class WeightController {
 
     @Autowired
     private WeightRepository weightRepository;
+
+    // 파일 업로드 디렉토리
+    private static final String UPLOAD_DIR = "/home/ubuntu/weight_images/";
+
+    /**
+     * 이미지 파일 업로드
+     * POST /api/health/weight/upload-image
+     */
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            // 업로드 디렉토리 생성
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            // 고유한 파일명 생성
+            String originalFilename = file.getOriginalFilename();
+            String extension = originalFilename != null ? 
+                originalFilename.substring(originalFilename.lastIndexOf(".")) : ".jpg";
+            String filename = UUID.randomUUID().toString() + extension;
+
+            // 파일 저장
+            Path filePath = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), filePath);
+
+            // 파일 URL 생성
+            String fileUrl = "/api/health/weight/images/" + filename;
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("filename", filename);
+            response.put("url", fileUrl);
+            response.put("message", "이미지 업로드 성공");
+
+            return ResponseEntity.ok(response);
+
+        } catch (IOException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "이미지 업로드 실패: " + e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    /**
+     * 이미지 파일 서빙
+     * GET /api/health/weight/images/{filename}
+     */
+    @GetMapping("/images/{filename}")
+    public ResponseEntity<?> getImage(@PathVariable String filename) {
+        try {
+            Path filePath = Paths.get(UPLOAD_DIR + filename);
+            if (!Files.exists(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] imageBytes = Files.readAllBytes(filePath);
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "image/jpeg";
+            }
+
+            return ResponseEntity.ok()
+                .header("Content-Type", contentType)
+                .body(imageBytes);
+
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 
     /**
      * 체중 기록 생성
@@ -45,6 +124,7 @@ public class WeightController {
                 ? request.get("notes").toString() 
                 : null;
 
+            // 이미지 URL 처리
             String frontImagePath = request.get("front_image_path") != null 
                 ? request.get("front_image_path").toString() 
                 : null;
