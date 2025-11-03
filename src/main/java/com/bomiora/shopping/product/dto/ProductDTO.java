@@ -40,6 +40,9 @@ public class ProductDTO {
     @JsonProperty("reviewCount")
     private Integer reviewCount;
     
+    // 상세 정보를 포함하기 위한 Map (additionalInfo)
+    private java.util.Map<String, Object> additionalInfo;
+    
     // 기본 생성자
     public ProductDTO() {}
     
@@ -106,5 +109,8 @@ public class ProductDTO {
     
     public Integer getReviewCount() { return reviewCount; }
     public void setReviewCount(Integer reviewCount) { this.reviewCount = reviewCount; }
+    
+    public java.util.Map<String, Object> getAdditionalInfo() { return additionalInfo; }
+    public void setAdditionalInfo(java.util.Map<String, Object> additionalInfo) { this.additionalInfo = additionalInfo; }
 }
 

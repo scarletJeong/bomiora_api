@@ -1,17 +1,25 @@
 package com.bomiora.shopping.product.service;
 
 import com.bomiora.shopping.product.dto.ProductDTO;
+import com.bomiora.shopping.product.entity.Product;
+import com.bomiora.shopping.product.repository.ProductRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
     
+    @Autowired
+    private ProductRepository productRepository;
+    
     /**
-     * 카테고리별 상품 목록 조회
-     * TODO: 실제 데이터베이스나 bomiora.kr PHP 서버에서 데이터 가져오기 구현 필요
+     * 카테고리별 상품 목록 조회 - 실제 데이터베이스에서 조회
      */
     public List<ProductDTO> getProductsByCategory(String categoryId, String productKind, 
                                                   int page, int pageSize) {
@@ -21,134 +29,145 @@ public class ProductService {
                           ", page: " + page +
                           ", pageSize: " + pageSize);
         
-        // TODO: 실제 구현 필요
-        // 1. bomiora.kr PHP 서버의 /shop/list.php를 호출하여 HTML 파싱
-        // 2. 또는 데이터베이스에서 직접 조회
-        // 3. 또는 외부 API 호출
-        
-        // 임시로 더미 데이터 반환 (개발/테스트용)
-        List<ProductDTO> products = new ArrayList<>();
-        
-        // 카테고리 이름 매핑
-        String categoryName = getCategoryName(categoryId);
-        
-        // 더미 데이터 생성 (실제 데이터로 교체 필요)
-        for (int i = 1; i <= pageSize && i <= 10; i++) {
-            ProductDTO product = new ProductDTO();
-            product.setId(categoryId + "_" + i);
-            product.setName(categoryName + " 상품 " + i);
-            product.setDescription(categoryName + " 카테고리의 " + i + "번째 상품입니다");
-            product.setPrice(50000 + (i * 10000));
-            product.setOriginalPrice(60000 + (i * 12000));
-            product.setImageUrl(null); // 실제 이미지 URL로 교체 필요
-            product.setCategoryId(categoryId);
-            product.setCategoryName(categoryName);
-            product.setProductKind(productKind);
-            product.setIsNew(i % 3 == 0);
-            product.setIsBest(i % 4 == 0);
-            product.setStock(100 - i * 5);
-            product.setRating(4.0 + (i % 5) * 0.2);
-            product.setReviewCount(10 + i * 5);
+        try {
+            // 페이지네이션 설정 (Spring Data는 0부터 시작)
+            Pageable pageable = PageRequest.of(page - 1, pageSize);
             
-            products.add(product);
+            Page<Product> productPage;
+            
+            // 상품 종류가 있으면 필터링, 없으면 카테고리만으로 조회
+            if (productKind != null && !productKind.isEmpty()) {
+                productPage = productRepository.findByCategoryIdAndProductKind(
+                    categoryId, productKind, pageable
+                );
+            } else {
+                productPage = productRepository.findByCategoryId(categoryId, pageable);
+            }
+            
+            // Entity를 DTO로 변환
+            List<ProductDTO> products = productPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+            
+            System.out.println("데이터베이스에서 상품 목록 조회 완료 - 개수: " + products.size());
+            return products;
+            
+        } catch (Exception e) {
+            System.out.println("데이터베이스 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            // 에러 발생 시 빈 리스트 반환
+            return List.of();
         }
-        
-        System.out.println("상품 목록 생성 완료 - 개수: " + products.size());
-        return products;
     }
     
     /**
-     * 상품 상세 정보 조회
+     * Entity를 DTO로 변환
+     */
+    private ProductDTO convertToDTO(Product entity) {
+        ProductDTO dto = new ProductDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setDescription(entity.getDescription());
+        dto.setPrice(entity.getPrice());
+        dto.setOriginalPrice(entity.getOriginalPrice());
+        dto.setImageUrl(processImageUrl(entity));
+        
+        dto.setCategoryId(entity.getCategoryId());
+        dto.setCategoryName(getCategoryName(entity.getCategoryId()));
+        dto.setProductKind(entity.getProductKind());
+        dto.setIsNew(entity.getIsNew());
+        dto.setIsBest(entity.getIsBest());
+        dto.setStock(entity.getStock() != null ? entity.getStock() : 0);
+        // BigDecimal을 Double로 변환
+        if (entity.getRating() != null) {
+            dto.setRating(entity.getRating().doubleValue());
+        }
+        dto.setReviewCount(entity.getReviewCount() != null ? entity.getReviewCount() : 0);
+        
+        // additionalInfo에 상세 정보 추가 (it_basic, it_prescription, it_takeway, it_package, it_point, it_point_type 등)
+        java.util.Map<String, Object> additionalInfo = new java.util.HashMap<>();
+        additionalInfo.put("it_explan", entity.getDescription()); // HTML 상세 설명
+        additionalInfo.put("it_basic", entity.getBasicDescription());
+        additionalInfo.put("it_prescription", entity.getPrescription());
+        additionalInfo.put("it_takeway", entity.getTakeway());
+        additionalInfo.put("it_package", entity.getPackageInfo());
+        additionalInfo.put("it_point", entity.getPoint());
+        additionalInfo.put("it_point_type", entity.getPointType());
+        additionalInfo.put("it_option_subject", entity.getOptionSubject());
+        additionalInfo.put("it_img2", null); // 필요시 추가
+        additionalInfo.put("it_img3", null); // 필요시 추가
+        dto.setAdditionalInfo(additionalInfo);
+        
+        return dto;
+    }
+    
+    /**
+     * 상품 상세 정보 조회 - 실제 데이터베이스에서 조회
      */
     public ProductDTO getProductDetail(String productId) {
         System.out.println("ProductService.getProductDetail 호출 - productId: " + productId);
         
-        // TODO: 실제 구현 필요
-        // 1. bomiora.kr PHP 서버의 /shop/item.php?id={productId} 호출
-        // 2. 또는 데이터베이스에서 직접 조회
-        
-        // 임시로 더미 데이터 반환
-        ProductDTO product = new ProductDTO();
-        product.setId(productId);
-        product.setName("상품 상세 " + productId);
-        product.setDescription("상품 ID: " + productId + "에 대한 상세 정보입니다");
-        product.setPrice(50000);
-        product.setOriginalPrice(60000);
-        product.setImageUrl(null);
-        product.setCategoryId("50");
-        product.setCategoryName("건강/면역");
-        product.setProductKind("prescription");
-        product.setIsNew(true);
-        product.setIsBest(false);
-        product.setStock(100);
-        product.setRating(4.5);
-        product.setReviewCount(23);
-        
-        return product;
+        try {
+            Product product = productRepository.findById(productId)
+                .orElse(null);
+            
+            if (product == null) {
+                System.out.println("상품을 찾을 수 없음 - productId: " + productId);
+                return null;
+            }
+            
+            System.out.println("데이터베이스에서 상품 상세 조회 완료 - productId: " + productId);
+            return convertToDTO(product);
+            
+        } catch (Exception e) {
+            System.out.println("데이터베이스 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            return null;
+        }
     }
     
     /**
-     * 인기 상품 목록 조회
+     * 인기 상품 목록 조회 - 실제 데이터베이스에서 조회
      */
     public List<ProductDTO> getPopularProducts(int limit) {
         System.out.println("ProductService.getPopularProducts 호출 - limit: " + limit);
         
-        // TODO: 실제 구현 필요
-        List<ProductDTO> products = new ArrayList<>();
-        
-        for (int i = 1; i <= limit; i++) {
-            ProductDTO product = new ProductDTO();
-            product.setId("popular_" + i);
-            product.setName("인기 상품 " + i);
-            product.setDescription("인기 상품 " + i + "번입니다");
-            product.setPrice(50000 + i * 5000);
-            product.setOriginalPrice(null);
-            product.setImageUrl(null);
-            product.setCategoryId("50");
-            product.setCategoryName("인기 상품");
-            product.setProductKind("general");
-            product.setIsNew(false);
-            product.setIsBest(true);
-            product.setStock(50);
-            product.setRating(4.8);
-            product.setReviewCount(100 + i * 10);
+        try {
+            Pageable pageable = PageRequest.of(0, limit);
+            List<Product> products = productRepository.findBestProducts(pageable);
             
-            products.add(product);
+            System.out.println("데이터베이스에서 인기 상품 조회 완료 - 개수: " + products.size());
+            return products.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            System.out.println("데이터베이스 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
         }
-        
-        return products;
     }
     
     /**
-     * 신상품 목록 조회
+     * 신상품 목록 조회 - 실제 데이터베이스에서 조회
      */
     public List<ProductDTO> getNewProducts(int limit) {
         System.out.println("ProductService.getNewProducts 호출 - limit: " + limit);
         
-        // TODO: 실제 구현 필요
-        List<ProductDTO> products = new ArrayList<>();
-        
-        for (int i = 1; i <= limit; i++) {
-            ProductDTO product = new ProductDTO();
-            product.setId("new_" + i);
-            product.setName("신상품 " + i);
-            product.setDescription("신상품 " + i + "번입니다");
-            product.setPrice(40000 + i * 3000);
-            product.setOriginalPrice(50000 + i * 4000);
-            product.setImageUrl(null);
-            product.setCategoryId("50");
-            product.setCategoryName("신상품");
-            product.setProductKind("general");
-            product.setIsNew(true);
-            product.setIsBest(false);
-            product.setStock(200);
-            product.setRating(4.0 + i * 0.1);
-            product.setReviewCount(5 + i * 2);
+        try {
+            Pageable pageable = PageRequest.of(0, limit);
+            List<Product> products = productRepository.findNewProducts(pageable);
             
-            products.add(product);
+            System.out.println("데이터베이스에서 신상품 조회 완료 - 개수: " + products.size());
+            return products.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+                
+        } catch (Exception e) {
+            System.out.println("데이터베이스 조회 실패: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
         }
-        
-        return products;
     }
     
     /**
@@ -162,6 +181,74 @@ public class ProductService {
             case "80": return "심신안정";
             default: return "기타";
         }
+    }
+    
+    /**
+     * 이미지 URL 처리
+     * - it_flutter_image_url 우선 사용 (폴더 경로 기반)
+     * - 없으면 it_img1 사용 (기존 이미지 URL)
+     * 
+     * @param entity Product 엔티티
+     * @return 처리된 이미지 URL (상대 경로 또는 전체 URL)
+     */
+    private String processImageUrl(Product entity) {
+        // Flutter용 이미지 URL 우선 처리
+        if (entity.getFlutterImageUrl() != null && !entity.getFlutterImageUrl().trim().isEmpty()) {
+            return buildFlutterImageUrl(entity.getFlutterImageUrl().trim(), entity.getId());
+        }
+        
+        // 기존 이미지 URL 처리
+        if (entity.getImageUrl() != null && !entity.getImageUrl().isEmpty()) {
+            return normalizeImageUrl(entity.getImageUrl().trim());
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Flutter용 이미지 URL 생성
+     * it_flutter_image_url에는 폴더 경로만 저장됨 (예: /data/products/1691479590/)
+     * 실제 이미지는 용도에 따라 자동으로 조합:
+     * - 리스트용: {folder_path}{product_id}_list.jpg
+     * 
+     * @param folderPath 폴더 경로
+     * @param productId 상품 ID
+     * @return 처리된 이미지 URL
+     */
+    private String buildFlutterImageUrl(String folderPath, String productId) {
+        // 폴더 경로 정규화
+        if (!folderPath.endsWith("/")) {
+            folderPath = folderPath + "/";
+        }
+        
+        // 절대 URL인 경우
+        if (folderPath.startsWith("http://") || folderPath.startsWith("https://")) {
+            String baseUrl = folderPath.endsWith("/") 
+                ? folderPath.substring(0, folderPath.length() - 1) 
+                : folderPath;
+            return baseUrl + "/" + productId + "_list.jpg";
+        }
+        
+        // 상대 경로인 경우: /data/products/1691479590/1691479590_list.jpg
+        if (!folderPath.startsWith("/")) {
+            folderPath = "/" + folderPath;
+        }
+        return folderPath + productId + "_list.jpg";
+    }
+    
+    /**
+     * 기존 이미지 URL 정규화
+     * @param imagePath 이미지 경로
+     * @return 정규화된 이미지 URL
+     */
+    private String normalizeImageUrl(String imagePath) {
+        // 이미 전체 URL인 경우 그대로 반환
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+            return imagePath;
+        }
+        
+        // 상대 경로 정규화: /data/item/...
+        return imagePath.startsWith("/") ? imagePath : "/" + imagePath;
     }
 }
 
