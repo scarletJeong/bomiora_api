@@ -1,6 +1,6 @@
-package com.bomiora.user.questionnaire.repository;
+package com.bomiora.user.healthprofile.repository;
 
-import com.bomiora.user.questionnaire.entity.HealthProfile;
+import com.bomiora.user.healthprofile.entity.HealthProfile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -48,3 +48,4 @@ public interface HealthProfileRepository extends JpaRepository<HealthProfile, Lo
     @Query("SELECT hp FROM HealthProfile hp WHERE hp.mbId = :mbId ORDER BY hp.pfWdatetime DESC")
     Optional<HealthProfile> findLatestByMbId(@Param("mbId") String mbId);
 }
+

@@ -1,4 +1,4 @@
-package com.bomiora.user.questionnaire.dto;
+package com.bomiora.user.healthprofile.dto;
 
 import java.time.LocalDateTime;
 
@@ -118,3 +118,4 @@ public class HealthProfileDto {
     public void setPfIp(String pfIp) { this.pfIp = pfIp; }
     public void setPfMemo(String pfMemo) { this.pfMemo = pfMemo; }
 }
+

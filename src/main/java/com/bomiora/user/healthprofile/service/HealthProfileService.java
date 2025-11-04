@@ -1,9 +1,9 @@
-package com.bomiora.user.questionnaire.service;
+package com.bomiora.user.healthprofile.service;
 
-import com.bomiora.user.questionnaire.dto.HealthProfileDto;
-import com.bomiora.user.questionnaire.dto.HealthProfileRequestDto;
-import com.bomiora.user.questionnaire.entity.HealthProfile;
-import com.bomiora.user.questionnaire.repository.HealthProfileRepository;
+import com.bomiora.user.healthprofile.dto.HealthProfileDto;
+import com.bomiora.user.healthprofile.dto.HealthProfileRequestDto;
+import com.bomiora.user.healthprofile.entity.HealthProfile;
+import com.bomiora.user.healthprofile.repository.HealthProfileRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,11 +145,21 @@ public class HealthProfileService {
         healthProfile.setAnswer5(requestDto.getAnswer5());
         healthProfile.setAnswer6(requestDto.getAnswer6());
         healthProfile.setAnswer7(requestDto.getAnswer7());
-        healthProfile.setAnswer8(requestDto.getAnswer8());
-        healthProfile.setAnswer9(requestDto.getAnswer9());
+        
+        // answer_8 (식습관) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer8(formatMultipleChoice(requestDto.getAnswer8()));
+        
+        // answer_9 (자주 먹는 음식) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer9(formatMultipleChoice(requestDto.getAnswer9()));
+        
         healthProfile.setAnswer10(requestDto.getAnswer10());
-        healthProfile.setAnswer11(requestDto.getAnswer11());
-        healthProfile.setAnswer12(requestDto.getAnswer12());
+        
+        // answer_11 (질병) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer11(formatMultipleChoice(requestDto.getAnswer11()));
+        
+        // answer_12 (복용 중인 약) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer12(formatMultipleChoice(requestDto.getAnswer12()));
+        
         healthProfile.setAnswer13(requestDto.getAnswer13());
         healthProfile.setAnswer13Period(requestDto.getAnswer13Period());
         healthProfile.setAnswer13Dosage(requestDto.getAnswer13Dosage());
@@ -165,6 +175,8 @@ public class HealthProfileService {
      * 기존 문진표 필드 업데이트
      */
     private void updateHealthProfileFields(HealthProfile healthProfile, HealthProfileRequestDto requestDto) {
+        // mbId는 필수 필드이므로 항상 설정 (null이면 오류 발생)
+        healthProfile.setMbId(requestDto.getMbId());
         healthProfile.setAnswer1(requestDto.getAnswer1());
         healthProfile.setAnswer2(requestDto.getAnswer2());
         healthProfile.setAnswer3(requestDto.getAnswer3());
@@ -172,11 +184,21 @@ public class HealthProfileService {
         healthProfile.setAnswer5(requestDto.getAnswer5());
         healthProfile.setAnswer6(requestDto.getAnswer6());
         healthProfile.setAnswer7(requestDto.getAnswer7());
-        healthProfile.setAnswer8(requestDto.getAnswer8());
-        healthProfile.setAnswer9(requestDto.getAnswer9());
+        
+        // answer_8 (식습관) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer8(formatMultipleChoice(requestDto.getAnswer8()));
+        
+        // answer_9 (자주 먹는 음식) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer9(formatMultipleChoice(requestDto.getAnswer9()));
+        
         healthProfile.setAnswer10(requestDto.getAnswer10());
-        healthProfile.setAnswer11(requestDto.getAnswer11());
-        healthProfile.setAnswer12(requestDto.getAnswer12());
+        
+        // answer_11 (질병) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer11(formatMultipleChoice(requestDto.getAnswer11()));
+        
+        // answer_12 (복용 중인 약) - 중복 제거 후 콤마로 join
+        healthProfile.setAnswer12(formatMultipleChoice(requestDto.getAnswer12()));
+        
         healthProfile.setAnswer13(requestDto.getAnswer13());
         healthProfile.setAnswer13Period(requestDto.getAnswer13Period());
         healthProfile.setAnswer13Dosage(requestDto.getAnswer13Dosage());
@@ -184,6 +206,30 @@ public class HealthProfileService {
         healthProfile.setAnswer71(requestDto.getAnswer71());
         healthProfile.setAnswer13Sideeffect(requestDto.getAnswer13Sideeffect());
         healthProfile.setPfMemo(requestDto.getPfMemo());
+    }
+    
+    /**
+     * 다중 선택 필드를 포맷팅 (중복 제거, 콤마로 join)
+     * 프론트엔드에서 보낸 값을 처리하여 중복을 제거하고 콤마로 구분된 문자열로 반환
+     */
+    private String formatMultipleChoice(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return "";
+        }
+        
+        // 콤마로 split하여 중복 제거
+        String[] parts = value.split(",");
+        java.util.Set<String> uniqueValues = new java.util.LinkedHashSet<>();
+        
+        for (String part : parts) {
+            String trimmed = part.trim();
+            if (!trimmed.isEmpty()) {
+                uniqueValues.add(trimmed);
+            }
+        }
+        
+        // 콤마와 공백으로 join하여 반환
+        return String.join(", ", uniqueValues);
     }
     
     /**
@@ -226,3 +272,4 @@ public class HealthProfileService {
         return "127.0.0.1";
     }
 }
+

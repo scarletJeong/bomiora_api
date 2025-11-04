@@ -1,4 +1,4 @@
-package com.bomiora.user.questionnaire.dto;
+package com.bomiora.user.healthprofile.dto;
 
 public class ApiResponseDto<T> {
     
@@ -63,3 +63,4 @@ public class ApiResponseDto<T> {
         return response;
     }
 }
+

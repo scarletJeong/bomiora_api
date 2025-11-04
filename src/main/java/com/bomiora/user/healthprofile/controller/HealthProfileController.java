@@ -1,9 +1,9 @@
-package com.bomiora.user.questionnaire.controller;
+package com.bomiora.user.healthprofile.controller;
 
-import com.bomiora.user.questionnaire.dto.ApiResponseDto;
-import com.bomiora.user.questionnaire.dto.HealthProfileDto;
-import com.bomiora.user.questionnaire.dto.HealthProfileRequestDto;
-import com.bomiora.user.questionnaire.service.HealthProfileService;
+import com.bomiora.user.healthprofile.dto.ApiResponseDto;
+import com.bomiora.user.healthprofile.dto.HealthProfileDto;
+import com.bomiora.user.healthprofile.dto.HealthProfileRequestDto;
+import com.bomiora.user.healthprofile.service.HealthProfileService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/questionnaire")
+@RequestMapping("/api/healthprofile")
 // CORS 설정은 CorsConfig.java에서 전역 설정으로 처리
 public class HealthProfileController {
     
@@ -25,7 +25,7 @@ public class HealthProfileController {
     
     /**
      * 사용자 문진표 조회
-     * GET /api/questionnaire/{userId}
+     * GET /api/healthprofile/{userId}
      */
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponseDto<HealthProfileDto>> getHealthProfile(@PathVariable String userId) {
@@ -49,7 +49,7 @@ public class HealthProfileController {
     
     /**
      * 문진표 저장/수정
-     * POST /api/questionnaire
+     * POST /api/healthprofile
      */
     @PostMapping
     public ResponseEntity<ApiResponseDto<HealthProfileDto>> saveHealthProfile(
@@ -71,7 +71,7 @@ public class HealthProfileController {
     
     /**
      * 문진표 수정
-     * PUT /api/questionnaire/{pfNo}
+     * PUT /api/healthprofile/{pfNo}
      */
     @PutMapping("/{pfNo}")
     public ResponseEntity<ApiResponseDto<HealthProfileDto>> updateHealthProfile(
@@ -97,7 +97,7 @@ public class HealthProfileController {
     
     /**
      * 문진표 삭제
-     * DELETE /api/questionnaire/{pfNo}
+     * DELETE /api/healthprofile/{pfNo}
      */
     @DeleteMapping("/{pfNo}")
     public ResponseEntity<ApiResponseDto<Void>> deleteHealthProfile(
@@ -123,7 +123,7 @@ public class HealthProfileController {
     
     /**
      * 문진표 존재 여부 확인
-     * GET /api/questionnaire/{userId}/exists
+     * GET /api/healthprofile/{userId}/exists
      */
     @GetMapping("/{userId}/exists")
     public ResponseEntity<ApiResponseDto<Boolean>> hasHealthProfile(@PathVariable String userId) {
@@ -143,7 +143,7 @@ public class HealthProfileController {
     
     /**
      * 건강 상태 분석 (추가 기능)
-     * GET /api/questionnaire/{userId}/analysis
+     * GET /api/healthprofile/{userId}/analysis
      */
     @GetMapping("/{userId}/analysis")
     public ResponseEntity<ApiResponseDto<Object>> analyzeHealthProfile(@PathVariable String userId) {
@@ -169,3 +169,4 @@ public class HealthProfileController {
         }
     }
 }
+

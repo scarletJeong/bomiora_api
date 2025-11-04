@@ -1,63 +1,103 @@
-package com.bomiora.user.questionnaire.dto;
+package com.bomiora.user.healthprofile.entity;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-public class HealthProfileRequestDto {
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "bomiora_member_health_profiles")
+public class HealthProfile {
     
-    @NotBlank(message = "사용자 ID는 필수입니다")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pf_no")
+    private Long pfNo;
+    
+    @Column(name = "mb_id", nullable = false, length = 30)
     private String mbId;
     
-    @NotBlank(message = "생년월일은 필수입니다")
+    @Column(name = "answer_1", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '생년월일'")
     private String answer1; // 생년월일
     
-    @NotBlank(message = "성별은 필수입니다")
+    @Column(name = "answer_2", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '성별'")
     private String answer2; // 성별
     
-    @NotBlank(message = "목표 감량 체중은 필수입니다")
+    @Column(name = "answer_3", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '목표감량체중'")
     private String answer3; // 목표감량체중
     
-    @NotBlank(message = "키는 필수입니다")
+    @Column(name = "answer_4", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '키'")
     private String answer4; // 키
     
-    @NotBlank(message = "몸무게는 필수입니다")
+    @Column(name = "answer_5", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '몸무게'")
     private String answer5; // 몸무게
     
-    @NotBlank(message = "다이어트 예상 기간은 필수입니다")
+    @Column(name = "answer_6", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '다이어트예상기간'")
     private String answer6; // 다이어트예상기간
     
-    @NotBlank(message = "하루 끼니는 필수입니다")
+    @Column(name = "answer_7", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '하루끼니'")
     private String answer7; // 하루끼니
     
-    @NotBlank(message = "식습관은 필수입니다")
+    @Column(name = "answer_8", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '식습관'")
     private String answer8; // 식습관
     
-    @NotBlank(message = "자주 먹는 음식은 필수입니다")
+    @Column(name = "answer_9", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '자주먹는음식'")
     private String answer9; // 자주먹는음식
     
-    @NotBlank(message = "운동 습관은 필수입니다")
+    @Column(name = "answer_10", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '운동습관'")
     private String answer10; // 운동습관
     
-    private String answer11; // 질병 (선택사항)
-    private String answer12; // 복용중인 약 (선택사항)
+    @Column(name = "answer_11", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '질병'")
+    private String answer11; // 질병
+    
+    @Column(name = "answer_12", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT '복용중인 약'")
+    private String answer12; // 복용중인 약
+    
+    @Column(name = "answer_13", columnDefinition = "VARCHAR(255) DEFAULT NULL COMMENT '기존 다이어트 복용약 여부'")
     private String answer13; // 기존 다이어트 복용약 여부
+    
+    @Column(name = "answer_13_period", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '다이어트약 복용기간'")
     private String answer13Period; // 다이어트약 복용기간
+    
+    @Column(name = "answer_13_dosage", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '다이어트약 복용횟수'")
     private String answer13Dosage; // 다이어트약 복용횟수
+    
+    @Column(name = "answer_13_medicine", columnDefinition = "VARCHAR(200) DEFAULT '' COMMENT '복용한 다이어트약명'")
     private String answer13Medicine; // 복용한 다이어트약명
+    
+    @Column(name = "answer_7_1", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '식사시간'")
     private String answer71; // 식사시간
+    
+    @Column(name = "answer_13_sideeffect", columnDefinition = "VARCHAR(100) DEFAULT '' COMMENT '부작용(불편했던점)'")
     private String answer13Sideeffect; // 부작용(불편했던점)
-    private String pfMemo; // 메모
+    
+    @CreationTimestamp
+    @Column(name = "pf_wdatetime", nullable = false, updatable = false)
+    private LocalDateTime pfWdatetime;
+    
+    @UpdateTimestamp
+    @Column(name = "pf_mdatetime", nullable = false)
+    private LocalDateTime pfMdatetime;
+    
+    @Column(name = "pf_ip", columnDefinition = "VARCHAR(255) DEFAULT '' COMMENT 'IP'")
+    private String pfIp;
+    
+    @Column(name = "pf_memo", columnDefinition = "TEXT")
+    private String pfMemo;
     
     // 기본 생성자
-    public HealthProfileRequestDto() {}
+    public HealthProfile() {}
     
     // 모든 필드를 포함한 생성자
-    public HealthProfileRequestDto(String mbId, String answer1, String answer2, String answer3, 
-                                  String answer4, String answer5, String answer6, String answer7, 
-                                  String answer8, String answer9, String answer10, String answer11, 
-                                  String answer12, String answer13, String answer13Period, 
-                                  String answer13Dosage, String answer13Medicine, String answer71, 
-                                  String answer13Sideeffect, String pfMemo) {
+    public HealthProfile(Long pfNo, String mbId, String answer1, String answer2, String answer3, 
+                        String answer4, String answer5, String answer6, String answer7, 
+                        String answer8, String answer9, String answer10, String answer11, 
+                        String answer12, String answer13, String answer13Period, 
+                        String answer13Dosage, String answer13Medicine, String answer71, 
+                        String answer13Sideeffect, LocalDateTime pfWdatetime, 
+                        LocalDateTime pfMdatetime, String pfIp, String pfMemo) {
+        this.pfNo = pfNo;
         this.mbId = mbId;
         this.answer1 = answer1;
         this.answer2 = answer2;
@@ -77,10 +117,14 @@ public class HealthProfileRequestDto {
         this.answer13Medicine = answer13Medicine;
         this.answer71 = answer71;
         this.answer13Sideeffect = answer13Sideeffect;
+        this.pfWdatetime = pfWdatetime;
+        this.pfMdatetime = pfMdatetime;
+        this.pfIp = pfIp;
         this.pfMemo = pfMemo;
     }
     
     // Getter 메서드들
+    public Long getPfNo() { return pfNo; }
     public String getMbId() { return mbId; }
     public String getAnswer1() { return answer1; }
     public String getAnswer2() { return answer2; }
@@ -100,9 +144,13 @@ public class HealthProfileRequestDto {
     public String getAnswer13Medicine() { return answer13Medicine; }
     public String getAnswer71() { return answer71; }
     public String getAnswer13Sideeffect() { return answer13Sideeffect; }
+    public LocalDateTime getPfWdatetime() { return pfWdatetime; }
+    public LocalDateTime getPfMdatetime() { return pfMdatetime; }
+    public String getPfIp() { return pfIp; }
     public String getPfMemo() { return pfMemo; }
     
     // Setter 메서드들
+    public void setPfNo(Long pfNo) { this.pfNo = pfNo; }
     public void setMbId(String mbId) { this.mbId = mbId; }
     public void setAnswer1(String answer1) { this.answer1 = answer1; }
     public void setAnswer2(String answer2) { this.answer2 = answer2; }
@@ -122,5 +170,9 @@ public class HealthProfileRequestDto {
     public void setAnswer13Medicine(String answer13Medicine) { this.answer13Medicine = answer13Medicine; }
     public void setAnswer71(String answer71) { this.answer71 = answer71; }
     public void setAnswer13Sideeffect(String answer13Sideeffect) { this.answer13Sideeffect = answer13Sideeffect; }
+    public void setPfWdatetime(LocalDateTime pfWdatetime) { this.pfWdatetime = pfWdatetime; }
+    public void setPfMdatetime(LocalDateTime pfMdatetime) { this.pfMdatetime = pfMdatetime; }
+    public void setPfIp(String pfIp) { this.pfIp = pfIp; }
     public void setPfMemo(String pfMemo) { this.pfMemo = pfMemo; }
 }
+
