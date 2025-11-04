@@ -23,4 +23,10 @@ public interface PointRepository extends JpaRepository<Point, Integer> {
      */
     @Query(value = "SELECT po_mb_point FROM bomiora_point WHERE mb_id = :userId ORDER BY po_datetime DESC, po_id DESC LIMIT 1", nativeQuery = true)
     Optional<Integer> findLatestMbPointByUserId(@Param("userId") String userId);
+    
+    /**
+     * 사용자의 포인트 내역 전체 조회 (최신순)
+     */
+    @Query("SELECT p FROM Point p WHERE p.userId = :userId ORDER BY p.datetime DESC, p.id DESC")
+    java.util.List<Point> findByUserIdOrderByDatetimeDesc(@Param("userId") String userId);
 }

@@ -5,6 +5,7 @@ import com.bomiora.user.point.repository.PointRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -39,6 +40,27 @@ public class PointService {
             System.out.println("❌ 포인트 조회 오류: " + e.getMessage());
             e.printStackTrace();
             return 0;
+        }
+    }
+    
+    /**
+     * 사용자의 포인트 내역 조회
+     * 
+     * @param userId 사용자 ID (mb_id)
+     * @return 포인트 내역 리스트 (최신순)
+     */
+    public List<Point> getPointHistory(String userId) {
+        try {
+            System.out.println("📋 포인트 내역 조회 시작 - userId: " + userId);
+            
+            List<Point> history = pointRepository.findByUserIdOrderByDatetimeDesc(userId);
+            
+            System.out.println("✅ 포인트 내역 조회 완료: " + history.size() + "개");
+            return history;
+        } catch (Exception e) {
+            System.out.println("❌ 포인트 내역 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return java.util.Collections.emptyList();
         }
     }
 }
