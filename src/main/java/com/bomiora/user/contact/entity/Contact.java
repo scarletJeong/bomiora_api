@@ -253,17 +253,25 @@ public class Contact {
     public void setWr10(String wr10) { this.wr10 = wr10; }
     
     /**
-     * 답변이 있는지 확인 (댓글이 있으면 답변 있음)
+     * 답변이 있는지 확인
+     * wr_is_comment = 1 이면 답변 있음
      */
     public boolean hasReply() {
-        return wrComment != null && wrComment > 0;
+        return wrIsComment != null && wrIsComment == 1;
     }
     
     /**
-     * 게시글인지 확인 (댓글이 아닌 경우)
+     * 게시글인지 확인 (원글만 조회용)
      */
     public boolean isPost() {
-        return wrIsComment == null || wrIsComment == 0;
+        return true; // 모든 데이터가 원글 (별도 댓글 row 없음)
+    }
+    
+    /**
+     * 답변 내용 가져오기 (wr_7 필드)
+     */
+    public String getReplyContent() {
+        return wr7 != null ? wr7 : "";
     }
 }
 

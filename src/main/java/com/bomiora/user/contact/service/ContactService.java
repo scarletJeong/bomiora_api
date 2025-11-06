@@ -21,7 +21,25 @@ public class ContactService {
      */
     public List<Contact> getUserContacts(String mbId) {
         try {
-            return contactRepository.findByMbId(mbId);
+            System.out.println("====================================");
+            System.out.println("📋 [문의내역 조회] mbId: " + mbId);
+            
+            List<Contact> contacts = contactRepository.findByMbId(mbId);
+            
+            System.out.println("📊 [조회 결과] 총 " + contacts.size() + "건");
+            
+            if (!contacts.isEmpty()) {
+                System.out.println("상위 3개 문의:");
+                for (int i = 0; i < Math.min(3, contacts.size()); i++) {
+                    Contact c = contacts.get(i);
+                    System.out.println("  " + (i+1) + ". wr_id: " + c.getWrId() + 
+                                     ", wr_is_comment: " + c.getWrIsComment() + 
+                                     ", subject: " + c.getWrSubject());
+                }
+            }
+            System.out.println("====================================");
+            
+            return contacts;
         } catch (Exception e) {
             System.out.println("❌ 문의내역 조회 오류: " + e.getMessage());
             e.printStackTrace();
@@ -60,6 +78,10 @@ public class ContactService {
     @Transactional
     public Contact createContact(Contact contact) {
         try {
+            System.out.println("🔧 [ContactService] 받은 Contact 객체:");
+            System.out.println("   wr_5: " + contact.getWr5());
+            System.out.println("   wr_option: " + contact.getWrOption());
+            
             // wr_id 생성 (최대값 + 1)
             Integer nextWrId = contactRepository.findMaxWrId()
                 .map(max -> max + 1)
@@ -69,6 +91,10 @@ public class ContactService {
             Integer nextWrNum = contactRepository.findMaxWrNum()
                 .map(max -> max + 1)
                 .orElse(1);
+            
+            System.out.println("🔢 생성된 ID/NUM:");
+            System.out.println("   nextWrId: " + nextWrId);
+            System.out.println("   nextWrNum: " + nextWrNum);
             
             contact.setWrId(nextWrId);
             contact.setWrNum(nextWrNum);
@@ -93,6 +119,14 @@ public class ContactService {
             if (contact.getWrSeoTitle() == null) {
                 contact.setWrSeoTitle("");
             }
+            //  wr_option 기본값 (설정되지 않았으면 빈 문자열)
+            if (contact.getWrOption() == null) {
+                System.out.println("⚠️ wr_option이 null이어서 빈 문자열로 설정");
+                contact.setWrOption("");
+            } else {
+                System.out.println("✅ wr_option 값 유지: " + contact.getWrOption());
+            }
+            
             if (contact.getWrLink1() == null) {
                 contact.setWrLink1("");
             }
@@ -124,7 +158,10 @@ public class ContactService {
                 contact.setWr4("");
             }
             if (contact.getWr5() == null) {
+                System.out.println("⚠️ wr_5가 null이어서 빈 문자열로 설정");
                 contact.setWr5("");
+            } else {
+                System.out.println("✅ wr_5 값 유지: " + contact.getWr5());
             }
             if (contact.getWr6() == null) {
                 contact.setWr6("");
@@ -142,12 +179,22 @@ public class ContactService {
                 contact.setWr10("");
             }
             
+            System.out.println("💾 [DB 저장 직전] 최종 값:");
+            System.out.println("   wr_1: " + contact.getWr1());
+            System.out.println("   wr_5: " + contact.getWr5());
+            System.out.println("   wr_option: " + contact.getWrOption());
+            System.out.println("   wr_num: " + contact.getWrNum());
+            
             // 저장 후 wr_parent 업데이트
             Contact saved = contactRepository.save(contact);
             saved.setWrParent(saved.getWrId());
             contactRepository.save(saved);
             
             System.out.println("✅ 문의 작성 완료 - wrId: " + saved.getWrId());
+            System.out.println("   최종 wr_1: " + saved.getWr1());
+            System.out.println("   최종 wr_5: " + saved.getWr5());
+            System.out.println("   최종 wr_option: " + saved.getWrOption());
+            System.out.println("   최종 wr_num: " + saved.getWrNum());
             return saved;
         } catch (Exception e) {
             System.out.println("❌ 문의 작성 오류: " + e.getMessage());
@@ -161,7 +208,32 @@ public class ContactService {
      */
     public List<Contact> getContactReplies(Integer wrId) {
         try {
-            return contactRepository.findRepliesByWrId(wrId);
+            System.out.println("====================================");
+            System.out.println("💬 [답변 조회 시작] wrId: " + wrId);
+            System.out.println("====================================");
+            
+            List<Contact> replies = contactRepository.findRepliesByWrId(wrId);
+            
+            System.out.println("📊 [답변 조회 결과] 개수: " + replies.size());
+            
+            if (replies.isEmpty()) {
+                System.out.println("⚠️ [답변 조회] 답변이 없습니다.");
+                System.out.println("확인 사항:");
+                System.out.println("  1. DB에 wr_parent = " + wrId + " 인 데이터가 있는지?");
+                System.out.println("  2. wr_is_comment = 1 인지?");
+            } else {
+                System.out.println("✅ [답변 조회] 답변 목록:");
+                for (Contact reply : replies) {
+                    System.out.println("  - wr_id: " + reply.getWrId() + 
+                                     ", wr_parent: " + reply.getWrParent() + 
+                                     ", wr_is_comment: " + reply.getWrIsComment() +
+                                     ", wr_content: " + (reply.getWrContent() != null ? 
+                                         reply.getWrContent().substring(0, Math.min(50, reply.getWrContent().length())) : "null"));
+                }
+            }
+            
+            System.out.println("====================================");
+            return replies;
         } catch (Exception e) {
             System.out.println("❌ 답변 목록 조회 오류: " + e.getMessage());
             e.printStackTrace();
