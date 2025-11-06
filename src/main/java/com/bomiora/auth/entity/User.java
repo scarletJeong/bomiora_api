@@ -26,6 +26,10 @@ public class User {
 
     @Column(name = "mb_phone")
     private String phone;
+    
+    @JsonProperty("mb_hp") // JSON 변환 시 mb_hp로 출력
+    @Column(name = "mb_hp")
+    private String mbHp; // 전화번호 (mb_hp 필드)
 
     @Column(name = "mb_datetime")
     private LocalDateTime createdAt;
@@ -63,6 +67,9 @@ public class User {
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+    
+    public String getMbHp() { return mbHp; }
+    public void setMbHp(String mbHp) { this.mbHp = mbHp; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
