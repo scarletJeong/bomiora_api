@@ -8,6 +8,8 @@ public class HealthProfileRequestDto {
     @NotBlank(message = "사용자 ID는 필수입니다")
     private String mbId;
     
+    private String itId; // 상품 ID (장바구니용)
+    
     @NotBlank(message = "생년월일은 필수입니다")
     private String answer1; // 생년월일
     
@@ -82,6 +84,7 @@ public class HealthProfileRequestDto {
     
     // Getter 메서드들
     public String getMbId() { return mbId; }
+    public String getItId() { return itId; }
     public String getAnswer1() { return answer1; }
     public String getAnswer2() { return answer2; }
     public String getAnswer3() { return answer3; }
@@ -104,6 +107,7 @@ public class HealthProfileRequestDto {
     
     // Setter 메서드들
     public void setMbId(String mbId) { this.mbId = mbId; }
+    public void setItId(String itId) { this.itId = itId; }
     public void setAnswer1(String answer1) { this.answer1 = answer1; }
     public void setAnswer2(String answer2) { this.answer2 = answer2; }
     public void setAnswer3(String answer3) { this.answer3 = answer3; }

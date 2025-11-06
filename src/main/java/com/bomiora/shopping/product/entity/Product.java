@@ -82,6 +82,25 @@ public class Product {
     @Column(name = "it_use", nullable = false)
     private Integer useFlag; // 사용 여부 (0 or 1)
     
+    // 배송비 관련 필드
+    @Column(name = "it_sc_type", nullable = false)
+    private Byte itScType; // 배송비 유형 (0: 쇼핑몰 기본설정, 1: 무료배송, 2: 조건부 무료배송, 3: 유료배송, 4: 수량별 부과)
+    
+    @Column(name = "it_sc_method", nullable = false)
+    private Byte itScMethod; // 배송비 결제 방법 (0: 선불, 1: 착불, 2: 사용자선택)
+    
+    @Column(name = "it_sc_price", nullable = false)
+    private Integer itScPrice; // 기본 배송비 금액
+    
+    @Column(name = "it_sc_minimum", nullable = false)
+    private Integer itScMinimum; // 무료배송 최소 금액 (조건부 무료배송용)
+    
+    @Column(name = "it_sc_qty", nullable = false)
+    private Integer itScQty; // 수량별 부과 단위 (수량별 부과용)
+    
+    @Column(name = "it_supply_point")
+    private Integer supplyPoint; // 추가옵션용 고정 포인트
+    
     // 기본 생성자
     public Product() {}
     
@@ -157,6 +176,24 @@ public class Product {
     
     public Integer getUseFlag() { return useFlag; }
     public void setUseFlag(Integer useFlag) { this.useFlag = useFlag; }
+    
+    public Byte getItScType() { return itScType; }
+    public void setItScType(Byte itScType) { this.itScType = itScType; }
+    
+    public Byte getItScMethod() { return itScMethod; }
+    public void setItScMethod(Byte itScMethod) { this.itScMethod = itScMethod; }
+    
+    public Integer getItScPrice() { return itScPrice; }
+    public void setItScPrice(Integer itScPrice) { this.itScPrice = itScPrice; }
+    
+    public Integer getItScMinimum() { return itScMinimum; }
+    public void setItScMinimum(Integer itScMinimum) { this.itScMinimum = itScMinimum; }
+    
+    public Integer getItScQty() { return itScQty; }
+    public void setItScQty(Integer itScQty) { this.itScQty = itScQty; }
+    
+    public Integer getSupplyPoint() { return supplyPoint; }
+    public void setSupplyPoint(Integer supplyPoint) { this.supplyPoint = supplyPoint; }
     
     /**
      * isNew 플래그를 Boolean으로 변환 (it_type3: 1이면 신상품)

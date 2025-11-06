@@ -209,16 +209,16 @@ public class HealthProfileService {
     }
     
     /**
-     * 다중 선택 필드를 포맷팅 (중복 제거, 콤마로 join)
-     * 프론트엔드에서 보낸 값을 처리하여 중복을 제거하고 콤마로 구분된 문자열로 반환
+     * 다중 선택 필드를 포맷팅 (중복 제거, 파이프(|)로 join)
+     * 프론트엔드에서 보낸 값을 처리하여 중복을 제거하고 파이프로 구분된 문자열로 반환
      */
     private String formatMultipleChoice(String value) {
         if (value == null || value.trim().isEmpty()) {
             return "";
         }
         
-        // 콤마로 split하여 중복 제거
-        String[] parts = value.split(",");
+        // 콤마 또는 파이프로 split하여 중복 제거 (입력이 콤마로 올 수도 있으므로 둘 다 처리)
+        String[] parts = value.split("[,|]");
         java.util.Set<String> uniqueValues = new java.util.LinkedHashSet<>();
         
         for (String part : parts) {
@@ -228,8 +228,8 @@ public class HealthProfileService {
             }
         }
         
-        // 콤마와 공백으로 join하여 반환
-        return String.join(", ", uniqueValues);
+        // 파이프(|)로 join하여 반환 (웹과 호환)
+        return String.join("|", uniqueValues);
     }
     
     /**
