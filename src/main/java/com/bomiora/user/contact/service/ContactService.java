@@ -19,7 +19,7 @@ public class ContactService {
     /**
      * 사용자의 문의내역 조회
      */
-    public List<Contact> getUserInquiries(String mbId) {
+    public List<Contact> getUserContacts(String mbId) {
         try {
             return contactRepository.findByMbId(mbId);
         } catch (Exception e) {
@@ -32,21 +32,21 @@ public class ContactService {
     /**
      * 문의 상세 조회
      */
-    public Optional<Contact> getInquiryDetail(Integer wrId) {
+    public Optional<Contact> getContactDetail(Integer wrId) {
         try {
-            Optional<Contact> inquiry = contactRepository.findByIdAndIsPost(wrId);
+            Optional<Contact> contact = contactRepository.findByIdAndIsPost(wrId);
             
             // 조회수 증가 (자신의 글은 제외하고 증가시킬 수 있지만, 일단 모두 증가)
-            if (inquiry.isPresent()) {
-                Contact i = inquiry.get();
-                if (i.getWrHit() == null) {
-                    i.setWrHit(0);
+            if (contact.isPresent()) {
+                Contact c = contact.get();
+                if (c.getWrHit() == null) {
+                    c.setWrHit(0);
                 }
-                i.setWrHit(i.getWrHit() + 1);
-                contactRepository.save(i);
+                c.setWrHit(c.getWrHit() + 1);
+                contactRepository.save(c);
             }
             
-            return inquiry;
+            return contact;
         } catch (Exception e) {
             System.out.println("❌ 문의 상세 조회 오류: " + e.getMessage());
             e.printStackTrace();
@@ -58,7 +58,7 @@ public class ContactService {
      * 문의 작성
      */
     @Transactional
-    public Contact createInquiry(Contact contact) {
+    public Contact createContact(Contact contact) {
         try {
             // wr_id 생성 (최대값 + 1)
             Integer nextWrId = contactRepository.findMaxWrId()
@@ -159,7 +159,7 @@ public class ContactService {
     /**
      * 문의 답변 목록 조회 (댓글)
      */
-    public List<Contact> getInquiryReplies(Integer wrId) {
+    public List<Contact> getContactReplies(Integer wrId) {
         try {
             return contactRepository.findRepliesByWrId(wrId);
         } catch (Exception e) {

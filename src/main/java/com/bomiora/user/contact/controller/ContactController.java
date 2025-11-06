@@ -27,14 +27,14 @@ public class ContactController {
      * GET /api/contact/list?mb_id={userId}
      */
     @GetMapping("/list")
-    public ResponseEntity<Map<String, Object>> getMyInquiries(
+    public ResponseEntity<Map<String, Object>> getMyContacts(
             @RequestParam("mb_id") String mbId) {
         try {
-            List<Contact> inquiries = contactService.getUserInquiries(mbId);
+            List<Contact> contacts = contactService.getUserContacts(mbId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("data", inquiries.stream().map(this::convertToMap).collect(Collectors.toList()));
+            response.put("data", contacts.stream().map(this::convertToMap).collect(Collectors.toList()));
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -54,15 +54,15 @@ public class ContactController {
      * GET /api/contact/{wrId}
      */
     @GetMapping("/{wrId}")
-    public ResponseEntity<Map<String, Object>> getInquiryDetail(
+    public ResponseEntity<Map<String, Object>> getContactDetail(
             @PathVariable Integer wrId) {
         try {
-            Optional<Contact> inquiry = contactService.getInquiryDetail(wrId);
+            Optional<Contact> contact = contactService.getContactDetail(wrId);
             
-            if (inquiry.isPresent()) {
+            if (contact.isPresent()) {
                 Map<String, Object> response = new HashMap<>();
                 response.put("success", true);
-                response.put("data", convertToMap(inquiry.get()));
+                response.put("data", convertToMap(contact.get()));
                 
                 return ResponseEntity.ok(response);
             } else {
@@ -89,7 +89,7 @@ public class ContactController {
      * POST /api/contact/create
      */
     @PostMapping("/create")
-    public ResponseEntity<Map<String, Object>> createInquiry(
+    public ResponseEntity<Map<String, Object>> createContact(
             @RequestBody Map<String, Object> request,
             HttpServletRequest httpRequest) {
         try {
@@ -117,7 +117,7 @@ public class ContactController {
             }
             contact.setWrIp(clientIp);
             
-            Contact saved = contactService.createInquiry(contact);
+            Contact saved = contactService.createContact(contact);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -142,10 +142,10 @@ public class ContactController {
      * GET /api/contact/{wrId}/replies
      */
     @GetMapping("/{wrId}/replies")
-    public ResponseEntity<Map<String, Object>> getInquiryReplies(
+    public ResponseEntity<Map<String, Object>> getContactReplies(
             @PathVariable Integer wrId) {
         try {
-            List<Contact> replies = contactService.getInquiryReplies(wrId);
+            List<Contact> replies = contactService.getContactReplies(wrId);
             
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
