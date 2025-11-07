@@ -20,7 +20,7 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     /**
      * 종료된 이벤트 조회 (ca_name != '진행중인 이벤트' 또는 NULL)
      */
-    @Query("SELECT e FROM Event e WHERE e.caName IS NULL OR e.caName != '진행중인 이벤트' ORDER BY e.wrNum DESC")
+    @Query("SELECT e FROM Event e WHERE e.caName IS NULL OR e.caName != '진행중인 이벤트' ORDER BY e.wrNum")
     List<Event> findEndedEvents();
     
     /**
