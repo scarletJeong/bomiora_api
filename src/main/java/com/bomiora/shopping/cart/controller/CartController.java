@@ -174,6 +174,89 @@ public class CartController {
     }
     
     /**
+     * HealthProfileCart 저장 (처방 예약)
+     * POST /api/cart/healthprofile
+     */
+    @PostMapping("/healthprofile")
+    public ResponseEntity<Map<String, Object>> saveHealthProfileForPrescription(
+            @RequestBody Map<String, Object> request) {
+        try {
+            System.out.println("====================================");
+            System.out.println("💊 [처방 예약] 장바구니 추가 요청");
+            System.out.println("요청 데이터: " + request);
+            System.out.println("====================================");
+            
+            // 1. HealthProfileCart에 건강 프로필 + 예약 정보 저장
+            ResponseEntity<Map<String, Object>> healthProfileResponse = saveHealthProfileCart(request);
+            
+            if (!healthProfileResponse.getStatusCode().is2xxSuccessful()) {
+                return healthProfileResponse; // 실패시 바로 리턴
+            }
+            
+            // 2. Cart 테이블에 실제 장바구니 아이템 추가 (옵션 정보 포함)
+            String mbId = (String) request.get("mb_id");
+            String itId = (String) request.get("it_id");
+            Long odId = request.get("od_id") != null ?
+                (request.get("od_id") instanceof Long ? (Long) request.get("od_id") :
+                 Long.parseLong(request.get("od_id").toString())) : null;
+            
+            // 옵션 정보 추출
+            String optionId = (String) request.get("option_id");
+            String optionText = (String) request.get("option_text");
+            Integer optionPrice = request.get("option_price") != null ?
+                (request.get("option_price") instanceof Integer ? (Integer) request.get("option_price") :
+                 Integer.parseInt(request.get("option_price").toString())) : null;
+            Integer quantity = request.get("quantity") != null ?
+                (request.get("quantity") instanceof Integer ? (Integer) request.get("quantity") :
+                 Integer.parseInt(request.get("quantity").toString())) : 1;
+            Integer price = request.get("price") != null ?
+                (request.get("price") instanceof Integer ? (Integer) request.get("price") :
+                 Integer.parseInt(request.get("price").toString())) : null;
+            
+            // price가 없으면 제품 정보에서 가져오기
+            if (price == null || price == 0) {
+                Optional<Product> productOpt = productRepository.findById(itId);
+                if (productOpt.isPresent()) {
+                    price = productOpt.get().getPrice() != null ? productOpt.get().getPrice() : 0;
+                } else {
+                    System.err.println("❌ 제품을 찾을 수 없음: " + itId);
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("success", false);
+                    response.put("message", "제품을 찾을 수 없습니다.");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                }
+            }
+            
+            System.out.println("📦 [장바구니 추가] mbId: " + mbId + ", itId: " + itId + ", odId: " + odId);
+            System.out.println("   - 옵션: " + optionText + " (ID: " + optionId + ")");
+            System.out.println("   - 가격: " + price + "원, 옵션가: " + optionPrice + "원, 수량: " + quantity);
+            
+            // 장바구니에 추가 (옵션 정보 포함)
+            Cart cart = cartService.addToCart(mbId, itId, quantity, price, optionId, optionText, optionPrice, odId);
+            
+            System.out.println("✅ [장바구니 추가 완료] ct_id: " + cart.getCtId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "처방 예약이 완료되었습니다.");
+            response.put("cart_id", cart.getCtId());
+            response.put("od_id", odId);
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            System.err.println("❌ [처방 예약 오류]: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "처방 예약 중 오류가 발생했습니다.");
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
      * HealthProfileCart 저장
      * POST /api/cart/save-health-profile-cart
      */
