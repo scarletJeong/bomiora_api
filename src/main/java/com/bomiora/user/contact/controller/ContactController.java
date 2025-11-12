@@ -204,6 +204,75 @@ public class ContactController {
     }
     
     /**
+     * 문의 수정
+     * PUT /api/contact/{wrId}
+     */
+    @PutMapping("/{wrId}")
+    public ResponseEntity<Map<String, Object>> updateContact(
+            @PathVariable Integer wrId,
+            @RequestBody Map<String, Object> request) {
+        try {
+            System.out.println("====================================");
+            System.out.println("✏️ [문의 수정 요청] wrId: " + wrId);
+            System.out.println("====================================");
+            System.out.println("wr_subject: " + request.get("wr_subject"));
+            System.out.println("wr_content: " + request.get("wr_content"));
+            System.out.println("====================================");
+            
+            // 기존 문의 조회
+            Optional<Contact> contactOpt = contactService.getContactDetail(wrId);
+            
+            if (!contactOpt.isPresent()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "문의를 찾을 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+            Contact contact = contactOpt.get();
+            
+            // 답변이 완료된 문의는 수정 불가
+            if (contact.hasReply()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "답변이 완료된 문의는 수정할 수 없습니다.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            }
+            
+            // 제목과 내용만 수정 가능
+            if (request.get("wr_subject") != null) {
+                contact.setWrSubject((String) request.get("wr_subject"));
+            }
+            if (request.get("wr_content") != null) {
+                contact.setWrContent((String) request.get("wr_content"));
+            }
+            
+            // 수정 시간 업데이트
+            contact.setWrLast(java.time.LocalDateTime.now());
+            
+            Contact updated = contactService.updateContact(contact);
+            
+            System.out.println("✅ 문의 수정 완료 - wrId: " + updated.getWrId());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "문의가 수정되었습니다.");
+            response.put("data", convertToMap(updated));
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ 문의 수정 API 오류: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "문의 수정 실패: " + e.getMessage());
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
      * 문의 답변 조회 (wr_7 필드에서 가져옴)
      * GET /api/contact/{wrId}/replies
      */

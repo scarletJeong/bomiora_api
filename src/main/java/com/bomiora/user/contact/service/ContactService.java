@@ -204,6 +204,30 @@ public class ContactService {
     }
     
     /**
+     * 문의 수정
+     */
+    @Transactional
+    public Contact updateContact(Contact contact) {
+        try {
+            System.out.println("✏️ [ContactService] 문의 수정 시작");
+            System.out.println("   wr_id: " + contact.getWrId());
+            System.out.println("   wr_subject: " + contact.getWrSubject());
+            
+            // 수정 시간 업데이트
+            contact.setWrLast(LocalDateTime.now());
+            
+            Contact updated = contactRepository.save(contact);
+            
+            System.out.println("✅ 문의 수정 완료 - wrId: " + updated.getWrId());
+            return updated;
+        } catch (Exception e) {
+            System.out.println("❌ 문의 수정 오류: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    /**
      * 문의 답변 목록 조회 (댓글)
      */
     public List<Contact> getContactReplies(Integer wrId) {
