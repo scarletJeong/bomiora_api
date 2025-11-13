@@ -29,6 +29,11 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByIsConfirmOrderByIsIdDesc(Integer isConfirm, Pageable pageable);
     
     /**
+     * 전체 리뷰 조회 - 리뷰 종류별 (승인된 것만)
+     */
+    Page<Review> findByIsRvkindAndIsConfirmOrderByIsIdDesc(String isRvkind, Integer isConfirm, Pageable pageable);
+    
+    /**
      * 특정 상품, 특정 리뷰 종류 조회
      */
     Page<Review> findByItIdAndIsRvkindAndIsConfirmOrderByIsIdDesc(

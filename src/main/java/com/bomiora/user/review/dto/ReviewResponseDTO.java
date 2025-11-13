@@ -81,9 +81,12 @@ public class ReviewResponseDTO {
         this.isNegativeReviewText = review.getIsNegativeReviewText();
         this.isMoreReviewText = review.getIsMoreReviewText();
         
-        // 이미지 리스트 생성
+        // 이미지 리스트 생성 (상대 경로 그대로, Flutter에서 변환)
         this.images = new ArrayList<>();
-        if (review.getIsImg1() != null && !review.getIsImg1().isEmpty()) images.add(review.getIsImg1());
+        if (review.getIsImg1() != null && !review.getIsImg1().isEmpty()) {
+            images.add(review.getIsImg1());
+            System.out.println("🖼️ [리뷰 이미지] is_img1: " + review.getIsImg1());
+        }
         if (review.getIsImg2() != null && !review.getIsImg2().isEmpty()) images.add(review.getIsImg2());
         if (review.getIsImg3() != null && !review.getIsImg3().isEmpty()) images.add(review.getIsImg3());
         if (review.getIsImg4() != null && !review.getIsImg4().isEmpty()) images.add(review.getIsImg4());

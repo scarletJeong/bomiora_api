@@ -179,7 +179,16 @@ public class ReviewService {
         
         try {
             Pageable pageable = PageRequest.of(page, size);
-            Page<Review> reviewPage = reviewRepository.findByIsConfirmOrderByIsIdDesc(1, pageable);
+            Page<Review> reviewPage;
+            
+            // rvkind 파라미터가 있으면 해당 종류만 필터링
+            if (rvkind != null && !rvkind.isEmpty()) {
+                reviewPage = reviewRepository.findByIsRvkindAndIsConfirmOrderByIsIdDesc(
+                    rvkind, 1, pageable);
+            } else {
+                // rvkind가 없으면 전체 리뷰 조회
+                reviewPage = reviewRepository.findByIsConfirmOrderByIsIdDesc(1, pageable);
+            }
             
             List<ReviewResponseDTO> reviews = reviewPage.getContent().stream()
                 .map(ReviewResponseDTO::new)
