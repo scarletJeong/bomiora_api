@@ -133,6 +133,7 @@ public class OrderService {
             result.put("orders", orderList);
             result.put("currentPage", page);
             result.put("totalPages", ordersPage.getTotalPages());
+            result.put("totalElements", ordersPage.getTotalElements());
             result.put("totalItems", ordersPage.getTotalElements());
             result.put("hasNext", ordersPage.hasNext());
             
@@ -143,6 +144,7 @@ public class OrderService {
             result.put("orders", new ArrayList<>());
             result.put("currentPage", page);
             result.put("totalPages", 0);
+            result.put("totalElements", 0L);
             result.put("totalItems", 0L);
             result.put("hasNext", false);
             
