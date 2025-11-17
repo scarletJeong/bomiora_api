@@ -1,5 +1,8 @@
 package com.bomiora.auth.controller;
 
+import com.bomiora.auth.dto.LoginRequest;
+import com.bomiora.auth.dto.RegisterRequest;
+import com.bomiora.auth.dto.UpdateProfileRequest;
 import com.bomiora.auth.entity.User;
 import com.bomiora.auth.repository.UserRepository;
 import com.bomiora.auth.util.PasswordUtil;
@@ -175,6 +178,64 @@ public class UserController {
         }
     }
 
+    @PutMapping("/user/profile")
+    @Operation(summary = "프로필 수정", description = "사용자 프로필 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "프로필 수정 완료"),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
+    })
+    public ResponseEntity<?> updateProfile(@RequestBody UpdateProfileRequest request) {
+        try {
+            System.out.println("✏️ [UPDATE PROFILE] 프로필 수정 시도: " + request.getMbId());
+
+            // 1. 사용자 조회 (mb_id로)
+            Optional<User> userOpt = userRepository.findByMbId(request.getMbId());
+            
+            if (!userOpt.isPresent()) {
+                System.out.println("❌ [UPDATE PROFILE] 사용자를 찾을 수 없음");
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "사용자를 찾을 수 없습니다.");
+                return ResponseEntity.ok(errorResponse);
+            }
+
+            User user = userOpt.get();
+            
+            // 2. 정보 업데이트
+            if (request.getName() != null && !request.getName().isEmpty()) {
+                user.setName(request.getName());
+            }
+            
+            if (request.getNickname() != null) {
+                user.setNickname(request.getNickname());
+            }
+            
+            if (request.getPhone() != null) {
+                user.setPhone(request.getPhone());
+                user.setMbHp(request.getPhone()); // mb_hp도 동일하게 설정
+            }
+            
+            // 3. 저장
+            User updatedUser = userRepository.save(user);
+            
+            System.out.println("✅ [UPDATE PROFILE] 프로필 수정 완료");
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("user", createUserResponse(updatedUser));
+            response.put("message", "프로필이 수정되었습니다.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            System.out.println("❌ [UPDATE PROFILE] 프로필 수정 오류: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "프로필 수정 중 오류가 발생했습니다.");
+            return ResponseEntity.ok(errorResponse);
+        }
+    }
 
     /**
      * User 엔티티를 응답용 Map으로 변환
@@ -194,64 +255,5 @@ public class UserController {
         userResponse.put("phone", user.getPhone());
         userResponse.put("mb_hp", user.getMbHp() != null ? user.getMbHp() : user.getPhone());
         return userResponse;
-    }
-
-    // 내부 클래스들 (기존과 동일)
-    public static class LoginRequest {
-        private String email;
-        private String password;
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-    }
-
-    public static class RegisterRequest {
-        private String email;
-        private String password;
-        private String name;
-        private String phone;
-
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
-    }
-
-    public static class LoginResponse {
-        private boolean success;
-        private User user;
-        private String message;
-
-        public LoginResponse(boolean success, User user, String message) {
-            this.success = success;
-            this.user = user;
-            this.message = message;
-        }
-
-        public boolean isSuccess() { return success; }
-        public User getUser() { return user; }
-        public String getMessage() { return message; }
-    }
-
-    public static class RegisterResponse {
-        private boolean success;
-        private User user;
-        private String message;
-
-        public RegisterResponse(boolean success, User user, String message) {
-            this.success = success;
-            this.user = user;
-            this.message = message;
-        }
-
-        public boolean isSuccess() { return success; }
-        public User getUser() { return user; }
-        public String getMessage() { return message; }
     }
 }
