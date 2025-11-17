@@ -56,5 +56,12 @@ public interface CouponRepository extends JpaRepository<Coupon, Integer> {
      */
     @Query("SELECT c FROM Coupon c WHERE c.id = :couponId AND c.userId = :userId")
     Optional<Coupon> findByCouponIdAndUserId(@Param("couponId") String couponId, @Param("userId") String userId);
+    
+    /**
+     * 특정 사용자가 특정 리뷰의 도움쿠폰을 이미 다운로드했는지 확인
+     */
+    @Query("SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END FROM Coupon c " +
+           "WHERE c.userId = :userId AND c.reviewId = :reviewId")
+    boolean existsByUserIdAndReviewId(@Param("userId") String userId, @Param("reviewId") Long reviewId);
 }
 

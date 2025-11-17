@@ -165,6 +165,44 @@ public class CouponController {
     }
     
     /**
+     * 도움쿠폰 다운로드
+     * POST /api/user/coupons/help-coupon
+     * Body: { "mbId": "test", "itId": "1234", "isId": 123 }
+     */
+    @PostMapping("/coupons/help-coupon")
+    public ResponseEntity<Map<String, Object>> downloadHelpCoupon(
+            @RequestBody Map<String, Object> request) {
+        try {
+            String mbId = (String) request.get("mbId");
+            String itId = (String) request.get("itId");
+            Integer isId = (Integer) request.get("isId");
+            
+            System.out.println("🎫 도움쿠폰 다운로드 요청 - mbId: " + mbId + ", itId: " + itId + ", isId: " + isId);
+            
+            Map<String, Object> result = couponService.downloadHelpCoupon(mbId, itId, isId);
+            
+            return ResponseEntity.ok(result);
+        } catch (RuntimeException e) {
+            System.out.println("❌ 도움쿠폰 다운로드 실패: " + e.getMessage());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.out.println("❌ 도움쿠폰 다운로드 오류: " + e.getMessage());
+            e.printStackTrace();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "쿠폰 다운로드 중 오류가 발생했습니다.");
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+    /**
      * Coupon 리스트를 Map 리스트로 변환
      */
     private List<Map<String, Object>> _convertCouponsToMap(List<Coupon> coupons) {

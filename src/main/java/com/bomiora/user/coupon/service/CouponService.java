@@ -2,17 +2,27 @@ package com.bomiora.user.coupon.service;
 
 import com.bomiora.user.coupon.entity.Coupon;
 import com.bomiora.user.coupon.repository.CouponRepository;
+import com.bomiora.user.review.entity.Review;
+import com.bomiora.user.review.repository.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class CouponService {
     
     @Autowired
     private CouponRepository couponRepository;
+    
+    @Autowired
+    private ReviewRepository reviewRepository;
     
     /**
      * 사용자의 모든 쿠폰 조회
@@ -191,6 +201,99 @@ public class CouponService {
             result.put("success", false);
             result.put("message", "쿠폰 등록 중 오류가 발생했습니다: " + e.getMessage());
             return result;
+        }
+    }
+    
+    /**
+     * 도움쿠폰 다운로드
+     * @param mbId 회원 ID
+     * @param itId 제품 ID
+     * @param isId 리뷰 ID
+     * @return 쿠폰 다운로드 결과
+     */
+    @Transactional
+    public Map<String, Object> downloadHelpCoupon(String mbId, String itId, Integer isId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 1. 리뷰 조회 및 검증
+            Review review = reviewRepository.findById(isId.longValue())
+                    .orElseThrow(() -> new RuntimeException("리뷰가 존재하지 않습니다."));
+            
+            // 2. 서포터 리뷰인지 확인
+            if (!"supporter".equals(review.getIsRvkind())) {
+                throw new RuntimeException("서포터 리뷰만 도움쿠폰을 다운로드할 수 있습니다.");
+            }
+            
+            // 3. 승인된 리뷰인지 확인
+            if (review.getIsConfirm() == null || review.getIsConfirm() != 1) {
+                throw new RuntimeException("승인된 리뷰만 도움쿠폰을 다운로드할 수 있습니다.");
+            }
+            
+            // 4. 중복 다운로드 체크 (is_id로)
+            boolean alreadyDownloaded = couponRepository.existsByUserIdAndReviewId(mbId, isId.longValue());
+            if (alreadyDownloaded) {
+                throw new RuntimeException("이미 다운로드하신 쿠폰입니다.");
+            }
+            
+            // 5. 쿠폰 ID 생성
+            String cpId = "HELP_" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            
+            // 6. 쿠폰 제목 생성
+            String reviewerName = review.getIsName() != null ? review.getIsName() : "익명";
+            String productName = review.getItName() != null ? 
+                    (review.getItName().length() > 10 ? review.getItName().substring(0, 10) + "..." : review.getItName()) : 
+                    "제품";
+            String cpSubject = "[도움쿠폰] " + reviewerName + "님의 " + productName + " 할인쿠폰 (5%)";
+            
+            // 7. 쿠폰 생성
+            Coupon coupon = new Coupon();
+            coupon.setId(cpId);
+            coupon.setSubject(cpSubject);
+            coupon.setMethod(0);  // 개별 상품 할인
+            coupon.setTarget(itId);
+            coupon.setUserId(mbId);
+            
+            // 날짜 설정 (오늘부터 7일)
+            LocalDate today = LocalDate.now();
+            coupon.setStartDate(today);
+            coupon.setEndDate(today.plusDays(6)); // 오늘 포함 7일
+            
+            coupon.setType(1);         // 정률 할인
+            coupon.setPrice(5);        // 5%
+            coupon.setTrunc(1);        // 1원 단위
+            coupon.setMinimum(5000);   // 최소 주문금액
+            coupon.setMaximum(5000);   // 최대 할인금액
+            coupon.setDatetime(LocalDateTime.now());
+            coupon.setReviewId(isId.longValue()); // 리뷰 ID 저장
+            coupon.setInfluencerId("");  // 빈 문자열 (도움쿠폰은 인플루언서가 아님)
+            coupon.setZoneId(0);  // 기본값
+            coupon.setOrderId(0L);  // 0 = 사용하지 않은 쿠폰
+            
+            // 8. 쿠폰 저장
+            couponRepository.save(coupon);
+            
+            // 9. 리뷰의 다운로드 카운트 증가
+            review.setCzDownload((review.getCzDownload() != null ? review.getCzDownload() : 0) + 1);
+            reviewRepository.save(review);
+            
+            int downloadCount = review.getCzDownload();
+            
+            System.out.println("✅ 도움쿠폰 다운로드 완료 - cpId: " + cpId + ", 다운로드 수: " + downloadCount);
+            
+            result.put("success", true);
+            result.put("message", "쿠폰 발급이 완료되었습니다.\n지금 바로 할인 받고 구매해보세요!\n쿠폰은 [마이페이지 > 내쿠폰] 또는 결제 전 [쿠폰 선택]에서 확인할 수 있습니다.");
+            result.put("downloadCount", downloadCount);
+            result.put("cpId", cpId);
+            
+            return result;
+            
+        } catch (RuntimeException e) {
+            throw e; // 비즈니스 로직 예외는 그대로 전달
+        } catch (Exception e) {
+            System.out.println("❌ 도움쿠폰 다운로드 오류: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("쿠폰 다운로드 중 오류가 발생했습니다.");
         }
     }
 }

@@ -57,11 +57,11 @@ public class Coupon {
     @Column(name = "cp_datetime")
     private LocalDateTime datetime; // cp_datetime
     
-    @Column(name = "mb_inf_id", length = 20)
+    @Column(name = "mb_inf_id", length = 20, nullable = true)
     private String influencerId; // mb_inf_id (인플루언서아이디)
     
     @Column(name = "is_id")
-    private Integer reviewId; // is_id (리뷰아이디)
+    private Long reviewId; // is_id (리뷰아이디)
     
     // 기본 생성자
     public Coupon() {}
@@ -118,8 +118,8 @@ public class Coupon {
     public String getInfluencerId() { return influencerId; }
     public void setInfluencerId(String influencerId) { this.influencerId = influencerId; }
     
-    public Integer getReviewId() { return reviewId; }
-    public void setReviewId(Integer reviewId) { this.reviewId = reviewId; }
+    public Long getReviewId() { return reviewId; }
+    public void setReviewId(Long reviewId) { this.reviewId = reviewId; }
     
     /**
      * 사용 가능한 쿠폰인지 확인
