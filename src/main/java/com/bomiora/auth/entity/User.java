@@ -24,6 +24,10 @@ public class User {
     @Column(name = "mb_name", nullable = false)
     private String name;
 
+    @JsonProperty("mb_nick") // JSON 변환 시 mb_nick으로 출력
+    @Column(name = "mb_nick")
+    private String nickname; // 닉네임
+
     @Column(name = "mb_phone")
     private String phone;
     
@@ -64,6 +68,9 @@ public class User {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
 
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }

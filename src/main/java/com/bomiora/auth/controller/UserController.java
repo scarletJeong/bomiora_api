@@ -188,6 +188,8 @@ public class UserController {
         userResponse.put("email", user.getEmail());
         userResponse.put("mb_name", user.getName());
         userResponse.put("name", user.getName());
+        userResponse.put("mb_nick", user.getNickname());
+        userResponse.put("nickname", user.getNickname());
         userResponse.put("mb_phone", user.getPhone());
         userResponse.put("phone", user.getPhone());
         userResponse.put("mb_hp", user.getMbHp() != null ? user.getMbHp() : user.getPhone());
