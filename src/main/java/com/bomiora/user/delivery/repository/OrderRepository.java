@@ -157,7 +157,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
     
     /**
-     * 결제완료 주문 조회 (입금 상태, 취소/반품 제외)
+     * 결제완료 주문 조회 (주문, 입금 상태, 취소/반품 제외)
      */
     @Query(value = "SELECT od_id, mb_id, od_name, od_email, od_hp, " +
            "od_addr1, od_addr2, od_addr3, od_status, " +
@@ -169,11 +169,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "delivery_completed, admin_completed, " +
            "NULLIF(auto_confirm_at, '0000-00-00 00:00:00') as auto_confirm_at " +
            "FROM bomiora_shop_order " +
-           "WHERE mb_id = :mbId AND od_status = '입금' " +
+           "WHERE mb_id = :mbId AND od_status IN ('주문', '입금') " +
            "AND (od_cancel_price IS NULL OR od_cancel_price = 0) " +
            "AND od_status NOT IN ('취소', '반품') " +
            "ORDER BY od_id DESC",
-           countQuery = "SELECT COUNT(*) FROM bomiora_shop_order WHERE mb_id = :mbId AND od_status = '입금' AND (od_cancel_price IS NULL OR od_cancel_price = 0) AND od_status NOT IN ('취소', '반품')",
+           countQuery = "SELECT COUNT(*) FROM bomiora_shop_order WHERE mb_id = :mbId AND od_status IN ('주문', '입금') AND (od_cancel_price IS NULL OR od_cancel_price = 0) AND od_status NOT IN ('취소', '반품')",
            nativeQuery = true)
     Page<Object[]> findOrdersPaymentCompleted(
         @Param("mbId") String mbId,
@@ -181,7 +181,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     );
     
     /**
-     * 결제완료 주문 조회 (기간 포함, 취소/반품 제외)
+     * 결제완료 주문 조회 (주문, 입금 상태, 기간 포함, 취소/반품 제외)
      */
     @Query(value = "SELECT od_id, mb_id, od_name, od_email, od_hp, " +
            "od_addr1, od_addr2, od_addr3, od_status, " +
@@ -194,11 +194,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "NULLIF(auto_confirm_at, '0000-00-00 00:00:00') as auto_confirm_at " +
            "FROM bomiora_shop_order " +
            "WHERE mb_id = :mbId AND NULLIF(od_time, '0000-00-00 00:00:00') >= :startDate " +
-           "AND od_status = '입금' " +
+           "AND od_status IN ('주문', '입금') " +
            "AND (od_cancel_price IS NULL OR od_cancel_price = 0) " +
            "AND od_status NOT IN ('취소', '반품') " +
            "ORDER BY od_id DESC",
-           countQuery = "SELECT COUNT(*) FROM bomiora_shop_order WHERE mb_id = :mbId AND NULLIF(od_time, '0000-00-00 00:00:00') >= :startDate AND od_status = '입금' AND (od_cancel_price IS NULL OR od_cancel_price = 0) AND od_status NOT IN ('취소', '반품')",
+           countQuery = "SELECT COUNT(*) FROM bomiora_shop_order WHERE mb_id = :mbId AND NULLIF(od_time, '0000-00-00 00:00:00') >= :startDate AND od_status IN ('주문', '입금') AND (od_cancel_price IS NULL OR od_cancel_price = 0) AND od_status NOT IN ('취소', '반품')",
            nativeQuery = true)
     Page<Object[]> findOrdersPaymentCompletedByPeriod(
         @Param("mbId") String mbId,
