@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -116,10 +117,37 @@ public class ReviewController {
     /**
      * 리뷰 도움됨 증가
      * POST /api/user/reviews/{isId}/helpful
+     * Body: { "mbId": "test" }
      */
     @PostMapping("/{isId}/helpful")
-    public ResponseEntity<Map<String, Object>> incrementReviewHelpful(@PathVariable Long isId) {
-        Map<String, Object> result = reviewService.incrementReviewHelpful(isId);
+    public ResponseEntity<Map<String, Object>> incrementReviewHelpful(
+            @PathVariable Long isId,
+            @RequestBody Map<String, String> request) {
+        String mbId = request.get("mbId");
+        
+        if (mbId == null || mbId.trim().isEmpty()) {
+            Map<String, Object> error = new HashMap<>();
+            error.put("success", false);
+            error.put("message", "회원 ID가 필요합니다.");
+            return ResponseEntity.ok(error);
+        }
+        
+        Map<String, Object> result = reviewService.incrementReviewHelpful(isId, mbId);
+        return ResponseEntity.ok(result);
+    }
+    
+    /**
+     * 사용자가 리뷰에 도움이 돼요를 눌렀는지 확인
+     * GET /api/user/reviews/{isId}/helpful/check?mbId=test&itId=1234
+     */
+    @GetMapping("/{isId}/helpful/check")
+    public ResponseEntity<Map<String, Object>> checkUserHelpful(
+            @PathVariable Long isId,
+            @RequestParam String mbId,
+            @RequestParam String itId) {
+        Map<String, Object> result = new HashMap<>();
+        boolean hasHelpful = reviewService.hasUserHelpful(itId, isId, mbId);
+        result.put("hasHelpful", hasHelpful);
         return ResponseEntity.ok(result);
     }
     

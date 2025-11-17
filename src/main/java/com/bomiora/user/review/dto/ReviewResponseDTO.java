@@ -14,6 +14,7 @@ public class ReviewResponseDTO {
     
     private Long isId;
     private String itId;
+    private String itName; // 제품명
     private String mbId;
     private String isName;
     private LocalDateTime isTime;
@@ -32,6 +33,7 @@ public class ReviewResponseDTO {
     // 추천 여부
     private String isRecommend;
     private Integer isGood;
+    private Integer czDownload; // 도움쿠폰 다운로드 카운트
     
     // 리뷰 내용
     private String isPositiveReviewText;
@@ -58,6 +60,7 @@ public class ReviewResponseDTO {
     public ReviewResponseDTO(Review review) {
         this.isId = review.getIsId();
         this.itId = review.getItId();
+        this.itName = review.getItName();
         this.mbId = review.getMbId();
         this.isName = review.getIsName();
         this.isTime = review.getIsTime();
@@ -76,6 +79,7 @@ public class ReviewResponseDTO {
         this.isRvkind = review.getIsRvkind();
         this.isRecommend = review.getIsRecommend();
         this.isGood = review.getIsGood();
+        this.czDownload = review.getCzDownload();
         
         this.isPositiveReviewText = review.getIsPositiveReviewText();
         this.isNegativeReviewText = review.getIsNegativeReviewText();
@@ -217,6 +221,22 @@ public class ReviewResponseDTO {
 
     public void setIsGood(Integer isGood) {
         this.isGood = isGood;
+    }
+
+    public Integer getCzDownload() {
+        return czDownload;
+    }
+
+    public void setCzDownload(Integer czDownload) {
+        this.czDownload = czDownload;
+    }
+
+    public String getItName() {
+        return itName;
+    }
+
+    public void setItName(String itName) {
+        this.itName = itName;
     }
 
     public String getIsPositiveReviewText() {

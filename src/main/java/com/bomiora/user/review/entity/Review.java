@@ -21,6 +21,9 @@ public class Review {
     @Column(name = "it_id", nullable = false)
     private String itId;
     
+    @Column(name = "it_name")
+    private String itName; // 제품명
+    
     @Column(name = "mb_id", nullable = false)
     private String mbId;
     
@@ -56,6 +59,9 @@ public class Review {
     
     @Column(name = "is_good")
     private Integer isGood; // 도움이 돼요 카운트
+    
+    @Column(name = "cz_download")
+    private Integer czDownload; // 도움쿠폰 다운로드 카운트
     
     @Column(name = "is_positive_review_text", columnDefinition = "TEXT")
     private String isPositiveReviewText; // 좋았던 점
@@ -130,9 +136,17 @@ public class Review {
     public String getItId() {
         return itId;
     }
-
+    
     public void setItId(String itId) {
         this.itId = itId;
+    }
+    
+    public String getItName() {
+        return itName;
+    }
+    
+    public void setItName(String itName) {
+        this.itName = itName;
     }
 
     public String getMbId() {
@@ -218,9 +232,17 @@ public class Review {
     public Integer getIsGood() {
         return isGood;
     }
-
+    
     public void setIsGood(Integer isGood) {
         this.isGood = isGood;
+    }
+    
+    public Integer getCzDownload() {
+        return czDownload;
+    }
+    
+    public void setCzDownload(Integer czDownload) {
+        this.czDownload = czDownload;
     }
 
     public String getIsPositiveReviewText() {

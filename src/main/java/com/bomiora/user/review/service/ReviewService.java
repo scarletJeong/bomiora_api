@@ -4,7 +4,9 @@ import com.bomiora.user.review.dto.ReviewRequestDTO;
 import com.bomiora.user.review.dto.ReviewResponseDTO;
 import com.bomiora.user.review.dto.ReviewStatsDTO;
 import com.bomiora.user.review.entity.Review;
+import com.bomiora.user.review.entity.ReviewHelpful;
 import com.bomiora.user.review.repository.ReviewRepository;
+import com.bomiora.user.review.repository.ReviewHelpfulRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +25,9 @@ public class ReviewService {
     
     @Autowired
     private ReviewRepository reviewRepository;
+    
+    @Autowired
+    private ReviewHelpfulRepository reviewHelpfulRepository;
     
     /**
      * 리뷰 작성
@@ -380,10 +385,10 @@ public class ReviewService {
     }
     
     /**
-     * 리뷰 도움됨 증가
+     * 리뷰 도움됨 증가 (중복 방지) - 기존 PHP 로직과 동일
      */
     @Transactional
-    public Map<String, Object> incrementReviewHelpful(Long isId) {
+    public Map<String, Object> incrementReviewHelpful(Long isId, String mbId) {
         Map<String, Object> result = new HashMap<>();
         
         try {
@@ -395,6 +400,22 @@ public class ReviewService {
                 return result;
             }
             
+            String itId = review.getItId();
+            
+            // 중복 클릭 체크 (it_id, is_id, mb_id 모두 체크)
+            boolean alreadyHelpful = reviewHelpfulRepository.existsByItIdAndReviewIdAndMbId(itId, isId, mbId);
+            if (alreadyHelpful) {
+                result.put("success", false);
+                result.put("message", "이미 추천 하신 리뷰 입니다.");
+                result.put("isGood", review.getIsGood());
+                return result;
+            }
+            
+            // 도움이 돼요 기록 저장 (it_id, is_id, mb_id, bg_flag='good')
+            ReviewHelpful helpful = new ReviewHelpful(itId, isId, mbId, "good");
+            reviewHelpfulRepository.save(helpful);
+            
+            // 리뷰 카운트 증가
             int currentGood = review.getIsGood() != null ? review.getIsGood() : 0;
             review.setIsGood(currentGood + 1);
             reviewRepository.save(review);
@@ -409,6 +430,13 @@ public class ReviewService {
         }
         
         return result;
+    }
+    
+    /**
+     * 사용자가 특정 리뷰에 "도움이 돼요"를 눌렀는지 확인
+     */
+    public boolean hasUserHelpful(String itId, Long isId, String mbId) {
+        return reviewHelpfulRepository.existsByItIdAndReviewIdAndMbId(itId, isId, mbId);
     }
     
     /**
