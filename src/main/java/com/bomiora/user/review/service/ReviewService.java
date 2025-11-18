@@ -7,6 +7,8 @@ import com.bomiora.user.review.entity.Review;
 import com.bomiora.user.review.entity.ReviewHelpful;
 import com.bomiora.user.review.repository.ReviewRepository;
 import com.bomiora.user.review.repository.ReviewHelpfulRepository;
+import com.bomiora.shopping.product.entity.Product;
+import com.bomiora.shopping.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +31,9 @@ public class ReviewService {
     
     @Autowired
     private ReviewHelpfulRepository reviewHelpfulRepository;
+    
+    @Autowired
+    private ProductRepository productRepository;
     
     /**
      * 리뷰 작성
@@ -116,20 +122,41 @@ public class ReviewService {
         Map<String, Object> result = new HashMap<>();
         
         try {
+            System.out.println("📖 [제품 리뷰 조회] 요청");
+            System.out.println("  - itId: " + itId);
+            System.out.println("  - rvkind: " + rvkind);
+            System.out.println("  - page: " + page + ", size: " + size);
+            
+            // 제품 정보 조회하여 it_org_id 확인
+            String reviewItId = itId; // 기본값: 현재 제품 ID
+            
+            Optional<Product> productOpt = productRepository.findById(itId);
+            if (productOpt.isPresent()) {
+                Product product = productOpt.get();
+                if (product.getItOrgId() != null && !product.getItOrgId().isEmpty()) {
+                    reviewItId = product.getItOrgId(); // 원본 제품 ID 사용
+                    System.out.println("🔍 [제품 리뷰 조회] it_org_id 발견: " + reviewItId);
+                }
+            }
+            
+            System.out.println("📌 [제품 리뷰 조회] 리뷰 조회 대상 제품 ID: " + reviewItId);
+            
             Pageable pageable = PageRequest.of(page, size);
             Page<Review> reviewPage;
             
             if (rvkind != null && !rvkind.isEmpty()) {
                 reviewPage = reviewRepository.findByItIdAndIsRvkindAndIsConfirmOrderByIsIdDesc(
-                    itId, rvkind, 1, pageable);
+                    reviewItId, rvkind, 1, pageable);
             } else {
                 reviewPage = reviewRepository.findByItIdAndIsConfirmOrderByIsIdDesc(
-                    itId, 1, pageable);
+                    reviewItId, 1, pageable);
             }
             
             List<ReviewResponseDTO> reviews = reviewPage.getContent().stream()
                 .map(ReviewResponseDTO::new)
                 .collect(Collectors.toList());
+            
+            System.out.println("✅ [제품 리뷰 조회] 성공 - 리뷰 개수: " + reviews.size());
             
             result.put("success", true);
             result.put("reviews", reviews);
@@ -139,6 +166,8 @@ public class ReviewService {
             result.put("hasNext", reviewPage.hasNext());
             
         } catch (Exception e) {
+            System.out.println("❌ [제품 리뷰 조회] 오류: " + e.getMessage());
+            e.printStackTrace();
             result.put("success", false);
             result.put("message", "리뷰 목록 조회 중 오류가 발생했습니다: " + e.getMessage());
         }

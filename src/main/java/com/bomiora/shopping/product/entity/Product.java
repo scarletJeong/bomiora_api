@@ -79,6 +79,9 @@ public class Product {
     @Column(name = "it_option_subject", length = 255)
     private String optionSubject; // 옵션 선택 표시명
     
+    @Column(name = "it_org_id", length = 20)
+    private String itOrgId; // 원본 제품 ID (파생 제품인 경우)
+    
     @Column(name = "it_use", nullable = false)
     private Integer useFlag; // 사용 여부 (0 or 1)
     
@@ -173,6 +176,9 @@ public class Product {
     
     public String getOptionSubject() { return optionSubject; }
     public void setOptionSubject(String optionSubject) { this.optionSubject = optionSubject; }
+    
+    public String getItOrgId() { return itOrgId; }
+    public void setItOrgId(String itOrgId) { this.itOrgId = itOrgId; }
     
     public Integer getUseFlag() { return useFlag; }
     public void setUseFlag(Integer useFlag) { this.useFlag = useFlag; }
